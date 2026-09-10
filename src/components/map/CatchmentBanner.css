@@ -1,0 +1,29 @@
+.catchment-banner {
+  position: absolute;
+  top: calc(52px + var(--ws-safe-top));
+  left: 50%;
+  z-index: 850;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  max-width: calc(100% - 32px);
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--catchment-color) 30%, var(--ws-line));
+  background: color-mix(in srgb, var(--catchment-color) 8%, rgba(255, 255, 255, 0.94));
+  box-shadow: var(--ws-shadow);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--ws-ink);
+  transform: translateX(-50%);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.catchment-banner-dot {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--catchment-color);
+}

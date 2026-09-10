@@ -1,0 +1,53 @@
+.app-shell {
+  position: relative;
+  width: 100vw;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.app-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ws-ink-soft);
+  font-size: 0.95rem;
+}
+
+.fab-add,
+.fab-chat {
+  position: absolute;
+  bottom: calc(20px + var(--ws-safe-bottom));
+  z-index: 900;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--ws-radius-pill);
+  border: none;
+  color: white;
+  box-shadow: var(--ws-shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.fab-add:active,
+.fab-chat:active {
+  transform: scale(0.96);
+}
+
+.fab-add {
+  right: calc(16px + var(--ws-safe-right));
+  background: var(--ws-accent);
+}
+
+.fab-chat {
+  left: calc(16px + var(--ws-safe-left));
+  background: var(--ws-surface);
+  color: var(--ws-ink);
+  border: 1px solid var(--ws-line);
+  box-shadow: var(--ws-shadow-sm);
+}

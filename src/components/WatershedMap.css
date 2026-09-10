@@ -1,0 +1,21 @@
+.watershed-map {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--ws-surface-alt);
+}
+
+/* Keep Leaflet's own controls clear of device safe areas (notch, home bar)
+   since this is a mobile-first, edge-to-edge layout. */
+.watershed-map .leaflet-top,
+.watershed-map .leaflet-bottom {
+  margin-top: var(--ws-safe-top);
+  margin-bottom: var(--ws-safe-bottom);
+}
+.watershed-map .leaflet-left {
+  margin-left: var(--ws-safe-left);
+}
+.watershed-map .leaflet-right {
+  margin-right: var(--ws-safe-right);
+}

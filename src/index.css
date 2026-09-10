@@ -1,0 +1,159 @@
+:root {
+  /* Palette — calm water / civic map app */
+  --ws-ink: #0f2d3a;
+  --ws-ink-soft: #5c7280;
+  --ws-ink-muted: #94a3ae;
+  --ws-surface: #ffffff;
+  --ws-surface-alt: #f4f7f8;
+  --ws-surface-raised: #ffffff;
+  --ws-line: #e3eaed;
+  --ws-line-strong: #cfd9de;
+  --ws-accent: #168396;
+  --ws-accent-soft: #e6f4f7;
+  --ws-green: #2f9d62;
+  --ws-amber: #d4922a;
+  --ws-coral: #d95545;
+
+  --ws-radius-sm: 10px;
+  --ws-radius: 16px;
+  --ws-radius-lg: 22px;
+  --ws-radius-pill: 999px;
+
+  --ws-shadow-sm: 0 1px 2px rgba(15, 45, 58, 0.05);
+  --ws-shadow: 0 4px 20px rgba(15, 45, 58, 0.08);
+  --ws-shadow-lg: 0 12px 40px rgba(15, 45, 58, 0.14);
+  --ws-shadow-sheet: 0 -10px 40px rgba(15, 45, 58, 0.12);
+
+  --ws-touch: 48px;
+  --ws-sheet-handle: 36px;
+
+  /* Safe-area insets, so panels clear the notch / home indicator */
+  --ws-safe-top: env(safe-area-inset-top, 0px);
+  --ws-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --ws-safe-left: env(safe-area-inset-left, 0px);
+  --ws-safe-right: env(safe-area-inset-right, 0px);
+
+  color-scheme: light;
+  font-family:
+    'Inter',
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  color: var(--ws-ink);
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--ws-surface-alt);
+  overscroll-behavior: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+@keyframes ws-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes ws-sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* Leaflet marker dots — used by src/components/map/markerIcons.js */
+.ws-marker-dot {
+  display: block;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--dot-color, var(--ws-accent));
+  border: 2px solid white;
+  box-shadow: 0 1px 4px rgba(15, 45, 58, 0.35);
+}
+.ws-marker-dot--pending {
+  width: 26px;
+  height: 26px;
+  box-shadow:
+    0 0 0 6px rgba(22, 131, 150, 0.22),
+    0 1px 4px rgba(15, 45, 58, 0.35);
+}
+
+.ws-marker-dot--related {
+  width: 20px;
+  height: 20px;
+  box-shadow:
+    0 0 0 4px var(--ring-color, var(--ws-accent)),
+    0 1px 4px rgba(15, 45, 58, 0.35);
+}
+
+.ws-marker-dot--selected {
+  width: 20px;
+  height: 20px;
+  box-shadow:
+    0 0 0 3px white,
+    0 0 0 6px var(--ws-ink),
+    0 1px 4px rgba(15, 45, 58, 0.35);
+}
+
+.ws-marker--placement {
+  background: transparent;
+  border: none;
+}
+
+.ws-placement-pin {
+  display: block;
+  width: 34px;
+  height: 40px;
+  filter: drop-shadow(0 2px 3px rgba(15, 45, 58, 0.3));
+  cursor: grab;
+  touch-action: none;
+}
+
+.ws-marker--placement.leaflet-marker-dragging .ws-placement-pin {
+  cursor: grabbing;
+  transform: translateY(-8px);
+  transition: transform 0.12s ease-out;
+}
+
+.placement-pin-tooltip.leaflet-tooltip {
+  padding: 6px 10px;
+  border-radius: var(--ws-radius-pill);
+  border: none;
+  background: var(--ws-ink);
+  color: white;
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: var(--ws-shadow-sm);
+}
+
+.placement-pin-tooltip.leaflet-tooltip-top::before {
+  border-top-color: var(--ws-ink);
+}
