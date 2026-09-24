@@ -34,6 +34,79 @@
     box-shadow 0.15s ease;
 }
 
+.hydrology-map-key {
+  position: absolute;
+  top: calc(58px + var(--ws-safe-top));
+  right: calc(12px + var(--ws-safe-right));
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 9px 11px;
+  border: 1px solid rgba(15, 45, 58, 0.12);
+  border-radius: var(--ws-radius-sm);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: var(--ws-shadow-sm);
+  backdrop-filter: blur(8px);
+  color: var(--ws-ink-soft);
+  font-size: 0.68rem;
+  pointer-events: none;
+}
+
+.hydrology-map-key span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.hydrology-map-key i {
+  display: block;
+  width: 18px;
+  height: 0;
+}
+
+.hydrology-map-key__elev {
+  height: 10px !important;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #d9f4fa, #7ec8a0, #f3ea7a);
+}
+.hydrology-map-key__river { border-top: 2px solid #1a7a92; }
+.hydrology-map-key__contour {
+  height: 0 !important;
+  border-top: 1.5px solid #5a7a88;
+}
+.hydrology-map-key__here {
+  height: 10px !important;
+  border-radius: 2px;
+  background: rgba(228, 106, 88, 0.55);
+  border: 1px solid #c94638;
+}
+.hydrology-map-key__upstream {
+  height: 10px !important;
+  border-radius: 2px;
+  background: rgba(90, 168, 184, 0.45);
+  border: 1px solid #1f7a8c;
+}
+.hydrology-map-key__downstream {
+  height: 10px !important;
+  border-radius: 2px;
+  background: rgba(240, 162, 59, 0.45);
+  border: 1px solid #c47a1a;
+}
+.hydrology-map-key__flow {
+  height: auto !important;
+  width: 18px;
+  border: none;
+  color: #3d5c66;
+  font-size: 0.85rem;
+  line-height: 1;
+}
+.hydrology-map-key__ticks {
+  height: 0 !important;
+  border-top: 2px solid #2c4a52;
+  width: 18px;
+}
+
 .fab-add:active,
 .fab-chat:active {
   transform: scale(0.96);

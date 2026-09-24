@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAppState } from '../../context/AppStateContext'
+import { useLanguage } from '../../context/LanguageContext'
 import './LoginScreen.css'
 
 // PROTOTYPE — fake auth. Any email/password combo "works"; there is no
@@ -7,6 +8,7 @@ import './LoginScreen.css'
 // backend.
 export default function LoginScreen() {
   const { login } = useAppState()
+  const { t } = useLanguage()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
@@ -21,13 +23,11 @@ export default function LoginScreen() {
       <div className="login-card">
         <img src="/icons.svg#drop" alt="" className="login-mark" aria-hidden="true" />
         <h1>WaterScope</h1>
-        <p className="login-tagline">
-          Log your water source, see how the whole watershed is doing.
-        </p>
+        <p className="login-tagline">{t('login.tagline')}</p>
 
         <form onSubmit={handleSubmit}>
           <label>
-            Email
+            {t('login.email')}
             <input
               type="email"
               value={email}
@@ -37,7 +37,7 @@ export default function LoginScreen() {
             />
           </label>
           <label>
-            Password
+            {t('login.password')}
             <input
               type="password"
               value={password}
@@ -47,10 +47,10 @@ export default function LoginScreen() {
             />
           </label>
           <button type="submit" className="login-submit">
-            Log in
+            {t('login.submit')}
           </button>
         </form>
-        <p className="login-note">Prototype — any email/password works.</p>
+        <p className="login-note">{t('login.note')}</p>
       </div>
     </div>
   )

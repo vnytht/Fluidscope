@@ -26,3 +26,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# GIS pipeline caches (regenerate via GeoJSON/scripts/)
+GeoJSON/_cache_*.zip
+GeoJSON/*.tif

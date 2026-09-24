@@ -1,5 +1,6 @@
 import { useRef } from 'react'
 import { getSafeRangeStyle, isInSafeRange, positionToPercent } from '../../lib/qualityBands'
+import { useLanguage } from '../../context/LanguageContext'
 
 function nearestBandIndex(pct, bands, scale) {
   let best = 0
@@ -16,6 +17,7 @@ function nearestBandIndex(pct, bands, scale) {
 }
 
 export default function SafetyScalePicker({ scale, value, onChange }) {
+  const { t } = useLanguage()
   const trackRef = useRef(null)
   const { bands } = scale
   const safeRange = getSafeRangeStyle(scale)
@@ -48,8 +50,10 @@ export default function SafetyScalePicker({ scale, value, onChange }) {
   }
 
   const ariaValueText = selected
-    ? `${selected.value}${scale.unit ? ` ${scale.unit}` : ''}${withinSafe ? ', within safe limit' : ', outside safe limit'}`
-    : 'Not selected'
+    ? `${selected.value}${scale.unit ? ` ${scale.unit}` : ''}, ${
+        withinSafe ? t('quality.withinLimit') : t('quality.outsideLimit')
+      }`
+    : t('quality.notSelected')
 
   return (
     <div className="safety-scale">
@@ -61,7 +65,7 @@ export default function SafetyScalePicker({ scale, value, onChange }) {
               style={{ left: `${safeRange.left}%`, width: `${safeRange.width}%` }}
               aria-hidden="true"
             >
-              <span className="scale-ruler-safe-label">{scale.safeLabel ?? 'Safe limit'}</span>
+              <span className="scale-ruler-safe-label">{t('quality.safeLimit')}</span>
             </div>
           )}
 
@@ -71,7 +75,7 @@ export default function SafetyScalePicker({ scale, value, onChange }) {
             onPointerDown={onTrackPointerDown}
             onPointerMove={onTrackPointerMove}
             role="slider"
-            aria-label="Reading on strip scale"
+            aria-label={t('quality.readingAria')}
             aria-valuemin={scale.min}
             aria-valuemax={scale.max}
             aria-valuenow={selected?.position ?? scale.min}
@@ -99,7 +103,7 @@ export default function SafetyScalePicker({ scale, value, onChange }) {
         </div>
       </div>
 
-      <div className="scale-ruler-labels" role="group" aria-label="Strip scale values">
+      <div className="scale-ruler-labels" role="group" aria-label={t('quality.valuesAria')}>
         {bands.map((band, index) => {
           const pct = positionToPercent(band.position, scale)
           const edge =
@@ -119,7 +123,7 @@ export default function SafetyScalePicker({ scale, value, onChange }) {
         })}
       </div>
 
-      {!selected && <p className="safety-scale-prompt">Slide to your strip reading.</p>}
+      {!selected && <p className="safety-scale-prompt">{t('quality.slidePrompt')}</p>}
     </div>
   )
 }

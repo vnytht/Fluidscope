@@ -32,6 +32,24 @@ export function relatedIcon(sample, catchmentColor) {
   })
 }
 
+export function upstreamIcon(sample) {
+  return L.divIcon({
+    className: 'ws-marker',
+    html: `<span class="ws-marker-dot ws-marker-dot--upstream" style="--dot-color:${markerColor(sample)}"></span>`,
+    iconSize: [30, 30],
+    iconAnchor: [15, 15],
+  })
+}
+
+export function downstreamIcon(sample) {
+  return L.divIcon({
+    className: 'ws-marker',
+    html: `<span class="ws-marker-dot ws-marker-dot--downstream" style="--dot-color:${markerColor(sample)}"></span>`,
+    iconSize: [30, 30],
+    iconAnchor: [15, 15],
+  })
+}
+
 export function selectedIcon(sample) {
   return L.divIcon({
     className: 'ws-marker',

@@ -1,0 +1,595 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light" />
+    <title>WaterScope — Terrain flow study</title>
+    <style>
+      :root {
+        --ink: #112e39;
+        --muted: #60747d;
+        --faint: #8da0a7;
+        --paper: #f5f4ef;
+        --surface: #fffefa;
+        --line: rgba(17, 46, 57, .13);
+        --blue: #176f8b;
+        --blue-dark: #0a4e69;
+        --blue-pale: #c8e5e4;
+        --coral: #d65e4b;
+        --green: #37755d;
+        --amber: #cf9434;
+        --shadow: 0 24px 70px rgba(13, 46, 57, .16);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: var(--ink);
+        background: var(--paper);
+      }
+
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body { margin: 0; min-width: 320px; }
+      button, a { font: inherit; }
+      button { cursor: pointer; }
+
+      .page {
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 0 0, rgba(193, 226, 223, .55), transparent 30rem),
+          var(--paper);
+      }
+
+      .hero {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 58px 42px 40px;
+        display: grid;
+        grid-template-columns: minmax(0, 1.3fr) minmax(320px, .7fr);
+        gap: 80px;
+        align-items: end;
+      }
+
+      .eyebrow {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 0 0 20px;
+        color: var(--blue);
+        font-size: 12px;
+        font-weight: 850;
+        letter-spacing: .13em;
+        text-transform: uppercase;
+      }
+
+      .eyebrow::before { content: ""; width: 30px; height: 2px; border-radius: 9px; background: currentColor; }
+
+      h1 {
+        max-width: 810px;
+        margin: 0;
+        font-size: clamp(48px, 6.7vw, 88px);
+        line-height: .93;
+        letter-spacing: -.06em;
+        font-weight: 770;
+      }
+
+      .hero p:last-child {
+        margin: 24px 0 0;
+        max-width: 710px;
+        color: var(--muted);
+        font-size: 18px;
+        line-height: 1.55;
+      }
+
+      .why-card {
+        padding: 24px 0 3px;
+        border-top: 1px solid var(--line);
+      }
+
+      .why-card .label { display: block; margin-bottom: 10px; color: var(--coral); font-size: 11px; font-weight: 850; letter-spacing: .12em; text-transform: uppercase; }
+      .why-card h2 { margin: 0; font-size: 23px; line-height: 1.2; letter-spacing: -.025em; }
+      .why-card p { margin: 12px 0 0 !important; font-size: 14px !important; line-height: 1.55 !important; }
+
+      .lab-wrap { max-width: 1280px; margin: 0 auto; padding: 0 42px 70px; }
+      .lab {
+        overflow: hidden;
+        border: 1px solid rgba(17,46,57,.15);
+        border-radius: 30px;
+        background: var(--surface);
+        box-shadow: var(--shadow);
+      }
+
+      .lab-tabs {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        border-bottom: 1px solid var(--line);
+        background: rgba(255,255,255,.9);
+      }
+
+      .tab {
+        position: relative;
+        min-height: 78px;
+        border: 0;
+        border-right: 1px solid var(--line);
+        background: transparent;
+        color: var(--muted);
+        text-align: left;
+        padding: 18px 20px;
+        transition: background .18s ease, color .18s ease;
+      }
+
+      .tab:last-child { border-right: 0; }
+      .tab small { display: block; margin-bottom: 5px; font-size: 9px; font-weight: 850; letter-spacing: .12em; text-transform: uppercase; opacity: .7; }
+      .tab strong { font-size: 14px; }
+      .tab[aria-selected="true"] { background: var(--ink); color: white; }
+      .tab[aria-selected="true"]::after { content: ""; position: absolute; left: 20px; right: 20px; bottom: 0; height: 3px; background: #9fdee0; }
+
+      .lab-body { display: grid; grid-template-columns: minmax(0, 1.58fr) minmax(310px, .42fr); min-height: 620px; }
+      .map-view { position: relative; overflow: hidden; min-height: 620px; background: #d7dfd7; isolation: isolate; }
+
+      .terrain-mosaic {
+        position: absolute;
+        z-index: 0;
+        left: 50%;
+        top: 50%;
+        width: 930px;
+        height: 930px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(3, 1fr);
+        transform: translate(-50%, -50%) scale(1.05);
+        filter: saturate(.52) contrast(.92) brightness(1.08);
+      }
+
+      .terrain-mosaic img { width: 100%; height: 100%; display: block; }
+      .terrain-wash { position: absolute; z-index: 1; inset: 0; pointer-events: none; }
+      .map-svg { position: absolute; z-index: 3; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+
+      .map-ui {
+        position: absolute;
+        z-index: 8;
+        inset: 18px 18px auto 18px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+        pointer-events: none;
+      }
+
+      .map-chip {
+        padding: 9px 12px;
+        border: 1px solid rgba(17,46,57,.12);
+        border-radius: 999px;
+        background: rgba(255,255,255,.91);
+        box-shadow: 0 3px 14px rgba(17,46,57,.12);
+        backdrop-filter: blur(10px);
+        font-size: 11px;
+        font-weight: 800;
+      }
+
+      .map-chip i { display: inline-block; width: 8px; height: 8px; margin-right: 6px; border: 2px solid var(--coral); border-radius: 50%; vertical-align: -1px; }
+      .data-chip { color: var(--blue-dark); }
+
+      .source-pin {
+        position: absolute;
+        z-index: 9;
+        left: 43%;
+        top: 44%;
+        width: 25px;
+        height: 25px;
+        border: 4px solid white;
+        border-radius: 50%;
+        background: #3b8c66;
+        box-shadow: 0 0 0 3px var(--ink), 0 4px 14px rgba(17,46,57,.38);
+      }
+
+      .source-pin::after {
+        content: "Selected source";
+        position: absolute;
+        left: 27px;
+        top: -6px;
+        width: max-content;
+        padding: 6px 8px;
+        border-radius: 7px;
+        background: rgba(17,46,57,.92);
+        color: white;
+        font-size: 9px;
+        font-weight: 750;
+      }
+
+      .basin-outline { fill: rgba(214,94,75,.055); stroke: var(--coral); stroke-width: 3; stroke-linejoin: round; }
+
+      .overlay { opacity: 0; transition: opacity .3s ease; }
+      .lab[data-active="land"] .overlay-land,
+      .lab[data-active="potential"] .overlay-potential,
+      .lab[data-active="slope"] .overlay-slope,
+      .lab[data-active="hybrid"] .overlay-hybrid { opacity: 1; }
+
+      .lab[data-active="land"] .terrain-wash {
+        background: linear-gradient(108deg, rgba(83,159,160,.34) 3%, rgba(170,199,165,.24) 45%, rgba(216,198,142,.38) 100%);
+        mix-blend-mode: multiply;
+      }
+
+      .lab[data-active="potential"] .terrain-wash,
+      .lab[data-active="hybrid"] .terrain-wash {
+        background: rgba(219,235,233,.38);
+        mix-blend-mode: color;
+      }
+
+      .lab[data-active="slope"] .terrain-wash { background: rgba(245,240,223,.15); }
+
+      .contour { fill: none; stroke: rgba(111,87,59,.48); stroke-width: 1.3; }
+      .contour.major { stroke-width: 2; stroke: rgba(79,67,54,.52); }
+      .height-label { fill: rgba(56,52,45,.72); font: 750 11px Inter, sans-serif; paint-order: stroke; stroke: rgba(255,255,255,.7); stroke-width: 4; }
+
+      .accum-glow { fill: none; stroke: rgba(114,170,179,.42); stroke-linecap: round; filter: url(#blur12); }
+      .accum-glow.weak { stroke-width: 28; opacity: .42; }
+      .accum-glow.mid { stroke-width: 48; opacity: .6; }
+      .accum-glow.strong { stroke: rgba(18,79,112,.68); stroke-width: 68; opacity: .77; }
+      .accum-core { fill: none; stroke: rgba(18,79,112,.9); stroke-width: 7; stroke-linecap: round; }
+      .accum-branch { fill: none; stroke: rgba(57,122,145,.8); stroke-width: 4; stroke-linecap: round; }
+      .direction-dash { fill: none; stroke: rgba(223,255,255,.95); stroke-width: 4; stroke-linecap: round; stroke-dasharray: 18 94; animation: downhill 3.5s linear infinite; }
+      @keyframes downhill { to { stroke-dashoffset: -112; } }
+
+      .slope-arrow { fill: none; stroke: white; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; filter: url(#darkHalo); }
+      .slope-arrow.soft { opacity: .62; stroke-width: 3; }
+      .outlet { fill: #e8fbfb; stroke: var(--blue-dark); stroke-width: 3; }
+      .outlet-label { fill: var(--ink); font: 800 11px Inter, sans-serif; paint-order: stroke; stroke: white; stroke-width: 5; }
+
+      .apa-line { fill: none; stroke: #0b7593; stroke-width: 7; stroke-linecap: round; filter: url(#paleHalo); }
+      .apa-minor { fill: none; stroke: #3b91a6; stroke-width: 3.5; stroke-linecap: round; filter: url(#paleHalo); }
+      .apa-arrow { fill: #0b7593; stroke: white; stroke-width: 1.5; }
+      .derived-line { fill: none; stroke: rgba(242,250,247,.92); stroke-width: 3; stroke-dasharray: 8 8; filter: url(#darkHalo); }
+
+      .map-legend {
+        position: absolute;
+        z-index: 8;
+        left: 18px;
+        bottom: 18px;
+        width: min(238px, calc(100% - 36px));
+        padding: 13px 14px;
+        border: 1px solid rgba(17,46,57,.12);
+        border-radius: 14px;
+        background: rgba(255,255,255,.93);
+        box-shadow: 0 5px 22px rgba(17,46,57,.15);
+        backdrop-filter: blur(12px);
+      }
+
+      .map-legend strong { display: block; margin-bottom: 7px; font-size: 11px; }
+      .legend-ramp { height: 8px; margin-bottom: 7px; border-radius: 99px; background: linear-gradient(90deg, #e9f2ef, #afcfd0, #397a91, #124f70); }
+      .legend-labels { display: flex; justify-content: space-between; color: var(--muted); font-size: 8px; font-weight: 750; }
+
+      .detail {
+        position: relative;
+        z-index: 10;
+        display: flex;
+        flex-direction: column;
+        padding: 38px 32px 28px;
+        background: var(--surface);
+        border-left: 1px solid var(--line);
+      }
+
+      .detail-kicker { margin: 0 0 10px; color: var(--blue); font-size: 10px; font-weight: 850; letter-spacing: .12em; text-transform: uppercase; }
+      .detail h2 { margin: 0; font-size: clamp(29px, 3vw, 40px); line-height: 1.02; letter-spacing: -.045em; }
+      .detail-copy { margin: 18px 0 0; color: var(--muted); font-size: 14px; line-height: 1.6; }
+
+      .truth-box {
+        margin-top: 24px;
+        padding: 14px;
+        border-radius: 13px;
+        background: #eef5f3;
+      }
+
+      .truth-box strong { display: block; margin-bottom: 5px; color: var(--green); font-size: 11px; }
+      .truth-box p { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
+
+      .detail-list { list-style: none; padding: 0; margin: 23px 0 0; display: grid; gap: 13px; }
+      .detail-list li { padding-bottom: 13px; border-bottom: 1px solid var(--line); }
+      .detail-list small { display: block; margin-bottom: 3px; color: var(--faint); font-size: 9px; font-weight: 850; letter-spacing: .09em; text-transform: uppercase; }
+      .detail-list span { font-size: 12px; font-weight: 720; line-height: 1.35; }
+
+      .detail-footer { margin-top: auto; padding-top: 25px; color: var(--faint); font-size: 10px; line-height: 1.45; }
+
+      .profile {
+        margin-top: 18px;
+        padding: 12px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: #faf9f4;
+      }
+
+      .profile svg { display: block; width: 100%; height: 82px; }
+      .profile-title { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 4px; font-size: 9px; font-weight: 800; }
+
+      .cards-section { max-width: 1280px; margin: 0 auto; padding: 10px 42px 76px; }
+      .section-head { display: flex; justify-content: space-between; align-items: end; gap: 30px; margin-bottom: 24px; }
+      .section-head h2 { margin: 0; max-width: 620px; font-size: clamp(32px, 4vw, 50px); line-height: 1; letter-spacing: -.045em; }
+      .section-head p { margin: 0; max-width: 430px; color: var(--muted); font-size: 14px; line-height: 1.55; }
+
+      .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+      .option-card {
+        min-height: 225px;
+        padding: 23px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: rgba(255,255,255,.64);
+        text-align: left;
+        transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+      }
+
+      .option-card:hover { transform: translateY(-3px); border-color: rgba(23,111,139,.42); box-shadow: 0 12px 30px rgba(17,46,57,.08); }
+      .option-card.active { border: 2px solid var(--blue); background: white; }
+      .option-card small { color: var(--blue); font-size: 9px; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
+      .option-card h3 { margin: 12px 0 9px; font-size: 20px; letter-spacing: -.025em; }
+      .option-card p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+      .option-card b { display: block; margin-top: 20px; color: var(--ink); font-size: 10px; }
+
+      .recommend {
+        max-width: 1196px;
+        margin: 0 auto 76px;
+        padding: 0 42px;
+      }
+
+      .recommend-inner {
+        padding: clamp(30px, 5vw, 58px);
+        border-radius: 30px;
+        background: var(--ink);
+        color: white;
+        display: grid;
+        grid-template-columns: 1.2fr .8fr;
+        gap: 70px;
+        align-items: end;
+      }
+
+      .recommend .eyebrow { color: #9fdee0; }
+      .recommend h2 { margin: 0; font-size: clamp(34px, 4.5vw, 58px); line-height: .98; letter-spacing: -.045em; }
+      .recommend p { margin: 17px 0 0; color: rgba(255,255,255,.68); line-height: 1.6; }
+      .stack { display: grid; gap: 12px; }
+      .stack div { display: grid; grid-template-columns: 24px 1fr; gap: 10px; color: rgba(255,255,255,.76); font-size: 13px; line-height: 1.45; }
+      .stack b { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: rgba(159,222,224,.14); color: #9fdee0; font-size: 10px; }
+
+      footer { padding: 0 32px 44px; text-align: center; color: var(--faint); font-size: 11px; }
+      footer a { color: var(--blue); }
+
+      @media (prefers-reduced-motion: reduce) {
+        html { scroll-behavior: auto; }
+        *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; }
+      }
+
+      @media (max-width: 980px) {
+        .hero { grid-template-columns: 1fr; gap: 30px; }
+        .lab-body { grid-template-columns: 1fr; }
+        .detail { border-left: 0; border-top: 1px solid var(--line); min-height: 410px; }
+        .cards { grid-template-columns: 1fr 1fr; }
+        .section-head, .recommend-inner { grid-template-columns: 1fr; display: grid; gap: 26px; }
+      }
+
+      @media (max-width: 650px) {
+        .hero { padding: 38px 20px 30px; }
+        .hero p:last-child { font-size: 16px; }
+        .lab-wrap { padding: 0 0 58px; }
+        .lab { border-radius: 0; border-inline: 0; }
+        .lab-tabs { display: flex; overflow-x: auto; }
+        .tab { min-width: 160px; }
+        .map-view { min-height: 540px; }
+        .terrain-mosaic { width: 850px; height: 850px; transform: translate(-54%, -48%); }
+        .map-ui { inset: 12px 12px auto; }
+        .data-chip { display: none; }
+        .source-pin { left: 46%; top: 43%; }
+        .detail { padding: 30px 22px 26px; }
+        .cards-section { padding: 0 20px 58px; }
+        .section-head { align-items: start; }
+        .cards { grid-template-columns: 1fr; }
+        .option-card { min-height: auto; }
+        .recommend { padding: 0 20px; }
+        .recommend-inner { border-radius: 22px; gap: 30px; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">WaterScope · terrain study</p>
+          <h1>Let the land explain the water.</h1>
+          <p>A selected catchment can still tell a useful story when there is no next colored basin. Elevation, valley shape, and terrain-derived drainage reveal what the single red polygon currently hides.</p>
+        </div>
+        <aside class="why-card">
+          <span class="label">Why you only see red</span>
+          <h2>The selected coastal basin ends at the sea in the current network.</h2>
+          <p>It has no upstream basin inside the loaded set, so the existing logic has no teal or amber neighbor to draw. Terrain data can show direction inside that same basin.</p>
+        </aside>
+      </header>
+
+      <section class="lab-wrap" aria-labelledby="lab-title">
+        <div class="lab" id="lab" data-active="potential">
+          <div class="lab-tabs" role="tablist" aria-label="Terrain visualization options">
+            <button class="tab" type="button" role="tab" data-option="land" aria-selected="false"><small>Option 01 · Implicit</small><strong>Read the Land</strong></button>
+            <button class="tab" type="button" role="tab" data-option="potential" aria-selected="true"><small>Option 02 · Gradient</small><strong>Terrain Veins</strong></button>
+            <button class="tab" type="button" role="tab" data-option="slope" aria-selected="false"><small>Option 03 · Explicit</small><strong>Slope Lens</strong></button>
+            <button class="tab" type="button" role="tab" data-option="hybrid" aria-selected="false"><small>Option 04 · Combined</small><strong>Verified Hybrid</strong></button>
+          </div>
+
+          <div class="lab-body">
+            <div class="map-view" aria-label="Interactive visual comparison over real Viana do Castelo terrain">
+              <div class="terrain-mosaic" aria-hidden="true">
+                <img src="/concepts/terrain-tiles/1946-1524.png" alt="" /><img src="/concepts/terrain-tiles/1947-1524.png" alt="" /><img src="/concepts/terrain-tiles/1948-1524.png" alt="" />
+                <img src="/concepts/terrain-tiles/1946-1525.png" alt="" /><img src="/concepts/terrain-tiles/1947-1525.png" alt="" /><img src="/concepts/terrain-tiles/1948-1525.png" alt="" />
+                <img src="/concepts/terrain-tiles/1946-1526.png" alt="" /><img src="/concepts/terrain-tiles/1947-1526.png" alt="" /><img src="/concepts/terrain-tiles/1948-1526.png" alt="" />
+              </div>
+              <div class="terrain-wash"></div>
+
+              <svg class="map-svg" viewBox="0 0 900 620" preserveAspectRatio="none" aria-hidden="true">
+                <defs>
+                  <filter id="blur12"><feGaussianBlur stdDeviation="10" /></filter>
+                  <filter id="darkHalo"><feDropShadow dx="0" dy="0" stdDeviation="2" flood-color="#153b48" flood-opacity=".9" /></filter>
+                  <filter id="paleHalo"><feDropShadow dx="0" dy="0" stdDeviation="2.5" flood-color="#f4ffff" flood-opacity=".94" /></filter>
+                  <marker id="slopeHead" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7" fill="none" stroke="white" stroke-width="1.8" /></marker>
+                </defs>
+
+                <path class="basin-outline" d="M220 75 L418 41 L640 95 L744 221 L692 382 L542 513 L337 550 L180 454 L130 275 Z" />
+
+                <g class="overlay overlay-land">
+                  <path class="contour" d="M710 87 C625 134 585 191 573 260 C555 358 474 417 323 467" />
+                  <path class="contour" d="M753 123 C660 169 627 233 615 300 C600 389 509 458 347 511" />
+                  <path class="contour major" d="M795 171 C700 213 671 274 655 349 C637 432 554 496 394 548" />
+                  <path class="contour" d="M645 64 C564 116 530 172 522 237 C510 329 436 387 283 432" />
+                  <text class="height-label" x="670" y="150">250 m</text><text class="height-label" x="535" y="385">100 m</text><text class="height-label" x="266" y="475">25 m</text>
+                  <path class="apa-minor" d="M692 121 C640 174 607 220 584 287 C557 364 486 429 344 493" opacity=".72" />
+                </g>
+
+                <g class="overlay overlay-potential">
+                  <path class="accum-glow weak" d="M690 104 C632 169 606 219 580 281" />
+                  <path class="accum-glow weak" d="M738 214 C666 237 622 252 580 281" />
+                  <path class="accum-glow mid" d="M580 281 C532 351 467 401 394 448" />
+                  <path class="accum-glow weak" d="M530 94 C535 174 548 220 580 281" />
+                  <path class="accum-glow strong" d="M394 448 C327 485 264 518 190 566" />
+                  <path class="accum-branch" d="M690 104 C632 169 606 219 580 281" />
+                  <path class="accum-branch" d="M738 214 C666 237 622 252 580 281" />
+                  <path class="accum-core" d="M580 281 C532 351 467 401 394 448 C327 485 264 518 190 566" />
+                  <path class="direction-dash" d="M690 104 C632 169 606 219 580 281 C532 351 467 401 394 448 C327 485 264 518 190 566" />
+                </g>
+
+                <g class="overlay overlay-slope">
+                  <path class="contour" d="M710 87 C625 134 585 191 573 260 C555 358 474 417 323 467" />
+                  <path class="contour major" d="M795 171 C700 213 671 274 655 349 C637 432 554 496 394 548" />
+                  <path class="slope-arrow" marker-end="url(#slopeHead)" d="M668 124 L635 165" />
+                  <path class="slope-arrow soft" marker-end="url(#slopeHead)" d="M548 133 L557 186" />
+                  <path class="slope-arrow" marker-end="url(#slopeHead)" d="M706 229 L656 248" />
+                  <path class="slope-arrow" marker-end="url(#slopeHead)" d="M607 240 L580 284" />
+                  <path class="slope-arrow soft" marker-end="url(#slopeHead)" d="M474 207 L493 259" />
+                  <path class="slope-arrow" marker-end="url(#slopeHead)" d="M518 330 L479 372" />
+                  <path class="slope-arrow" marker-end="url(#slopeHead)" d="M414 373 L378 417" />
+                  <path class="slope-arrow soft" marker-end="url(#slopeHead)" d="M298 355 L280 411" />
+                  <path class="slope-arrow" marker-end="url(#slopeHead)" d="M331 475 L276 504" />
+                  <path class="slope-arrow" marker-end="url(#slopeHead)" d="M225 480 L195 530" />
+                  <circle class="outlet" cx="190" cy="565" r="10" /><text class="outlet-label" x="205" y="570">Terrain outlet</text>
+                </g>
+
+                <g class="overlay overlay-hybrid">
+                  <path class="accum-glow weak" d="M690 104 C632 169 606 219 580 281" />
+                  <path class="accum-glow mid" d="M580 281 C532 351 467 401 394 448 C327 485 264 518 190 566" />
+                  <path class="derived-line" d="M690 104 C632 169 606 219 580 281" />
+                  <path class="apa-minor" d="M738 214 C669 233 623 252 580 281" />
+                  <path class="apa-line" d="M580 281 C530 350 466 401 394 448 C327 485 264 518 190 566" />
+                  <path class="apa-arrow" d="M491 374 l18 -1 -8 16 z" transform="rotate(28 500 382)" />
+                  <path class="apa-arrow" d="M302 490 l18 -1 -8 16 z" transform="rotate(31 311 498)" />
+                  <circle class="outlet" cx="190" cy="565" r="10" /><text class="outlet-label" x="205" y="570">To mapped outlet</text>
+                </g>
+              </svg>
+
+              <div class="map-ui"><span class="map-chip"><i></i>This surface catchment</span><span class="map-chip data-chip" id="data-chip">30 m terrain estimate</span></div>
+              <div class="source-pin" aria-hidden="true"></div>
+              <div class="map-legend" id="map-legend"><strong>Drainage potential</strong><div class="legend-ramp"></div><div class="legend-labels"><span>Diffuse hillside</span><span>Concentrated</span></div></div>
+            </div>
+
+            <aside class="detail" aria-live="polite">
+              <p class="detail-kicker" id="detail-kicker">Closest to your reference</p>
+              <h2 id="lab-title">Terrain Veins</h2>
+              <p class="detail-copy" id="detail-copy">Darker blue shows where more uphill land converges through the terrain. The moving highlight shows the modeled downhill direction.</p>
+              <div class="truth-box"><strong id="truth-title">What this honestly means</strong><p id="truth-copy">This is terrain-derived drainage potential. It is not runoff volume, groundwater movement, or proof that water reaches the selected well.</p></div>
+              <ul class="detail-list" id="detail-list">
+                <li><small>Uses</small><span>Elevation + D8 flow direction + flow accumulation</span></li>
+                <li><small>User reads</small><span>Where slopes collect into stronger drainage corridors</span></li>
+                <li><small>Best data</small><span>DGT 2 m bare-earth terrain; 30 m terrain for prototype</span></li>
+              </ul>
+              <div class="profile" id="profile" hidden>
+                <div class="profile-title"><span>Source · 148 m</span><span>Outlet · 6 m</span></div>
+                <svg viewBox="0 0 240 82" aria-label="Elevation falls from source to outlet"><path d="M3 68 C27 34 54 39 78 28 C102 17 126 44 150 48 C177 53 193 67 237 72 L237 81 L3 81Z" fill="#c8dfd6"/><path d="M3 68 C27 34 54 39 78 28 C102 17 126 44 150 48 C177 53 193 67 237 72" fill="none" stroke="#176f8b" stroke-width="3"/><circle cx="78" cy="28" r="4" fill="#d65e4b"/><circle cx="237" cy="72" r="4" fill="#176f8b"/></svg>
+              </div>
+              <p class="detail-footer" id="detail-footer">Suggested label: “How the land may drain”</p>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <section class="cards-section">
+        <div class="section-head">
+          <h2>Four different levels of explanation</h2>
+          <p>Choose how strongly the product should interpret the terrain for people. Click a card to load it into the same map above.</p>
+        </div>
+        <div class="cards">
+          <button class="option-card" data-option="land" type="button"><small>01 · Let people infer</small><h3>Read the Land</h3><p>Natural elevation tint, hillshade, contours, and mapped watercourses. Calm and trustworthy.</p><b>Lowest interpretation risk</b></button>
+          <button class="option-card active" data-option="potential" type="button"><small>02 · Gradient like reference</small><h3>Terrain Veins</h3><p>Continuous accumulation gradient reveals where uphill land converges and adds one subtle downhill pulse.</p><b>Strongest visual impact</b></button>
+          <button class="option-card" data-option="slope" type="button"><small>03 · State direction</small><h3>Slope Lens</h3><p>Sparse downhill vectors, contours, an outlet, and a source-to-outlet elevation profile.</p><b>Easiest to explain</b></button>
+          <button class="option-card" data-option="hybrid" type="button"><small>04 · Separate evidence</small><h3>Verified Hybrid</h3><p>Dashed terrain inference beneath solid APA watercourses with explicit directional arrowheads.</p><b>Most defensible</b></button>
+        </div>
+      </section>
+
+      <section class="recommend">
+        <div class="recommend-inner">
+          <div>
+            <p class="eyebrow">Recommended system</p>
+            <h2>Terrain Veins underneath, APA waterways above.</h2>
+            <p>This gives you the beautiful continuous gradient from the reference while keeping a firm distinction between what terrain predicts and what Portugal’s official hydrography maps.</p>
+          </div>
+          <div class="stack">
+            <div><b>1</b><span>Use the DGT 2 m bare-earth terrain model for the production layer.</span></div>
+            <div><b>2</b><span>Derive slope, flow direction, and accumulation offline; ship lightweight map tiles.</span></div>
+            <div><b>3</b><span>Call it “drainage potential” until rainfall, soils, imperviousness, and drains are modeled.</span></div>
+          </div>
+        </div>
+      </section>
+
+      <footer>
+        Standalone design study · the application is unchanged · terrain preview © <a href="https://opentopomap.org" target="_blank" rel="noreferrer">OpenTopoMap</a> / © OpenStreetMap contributors
+      </footer>
+    </main>
+
+    <script>
+      const variants = {
+        land: {
+          kicker: 'Terrain without a flow claim', title: 'Read the Land',
+          copy: 'Warm ridges, cool lowlands, hillshade, and contours let people see the valley shape. Mapped watercourses sit naturally in the low folds.',
+          truthTitle: 'What people may infer', truth: 'Surface water generally moves from higher ridges into lower valleys and toward the coast. This view does not calculate a route.',
+          rows: [['Uses','Elevation tint + hillshade + contours + APA waterways'],['User reads','Ridge → valley → coast'],['Best data','DGT 2 m terrain, pre-rendered as tiles']],
+          footer: 'Suggested label: “Read the land”', chip: 'Terrain + mapped waterways', legend: '<strong>Land elevation</strong><div class="legend-ramp" style="background:linear-gradient(90deg,#74aaa9,#b9cba4,#dbc58d)"></div><div class="legend-labels"><span>Low / coast</span><span>High ridge</span></div>', profile: false
+        },
+        potential: {
+          kicker: 'Closest to your reference', title: 'Terrain Veins',
+          copy: 'Darker blue shows where more uphill land converges through the terrain. The moving highlight shows the modeled downhill direction.',
+          truthTitle: 'What this honestly means', truth: 'This is terrain-derived drainage potential. It is not runoff volume, groundwater movement, or proof that water reaches the selected well.',
+          rows: [['Uses','Elevation + D8 flow direction + flow accumulation'],['User reads','Where slopes collect into stronger drainage corridors'],['Best data','DGT 2 m bare-earth terrain; 30 m terrain for prototype']],
+          footer: 'Suggested label: “How the land may drain”', chip: '30 m terrain estimate', legend: '<strong>Drainage potential</strong><div class="legend-ramp"></div><div class="legend-labels"><span>Diffuse hillside</span><span>Concentrated</span></div>', profile: false
+        },
+        slope: {
+          kicker: 'Most explicit explanation', title: 'Slope Lens',
+          copy: 'Sparse arrows show the steepest downhill direction calculated from elevation. A profile makes the fall from the source to the basin outlet unmissable.',
+          truthTitle: 'Known versus inferred', truth: 'Elevation is measured terrain data. The arrows, outlet, and profile are calculations from that terrain and should be labeled as inferred.',
+          rows: [['Uses','Contours + slope magnitude + terrain aspect'],['User reads','Which way is downhill and how steeply'],['Best data','DGT terrain; hide vectors in flat or uncertain cells']],
+          footer: 'Suggested label: “Downhill direction from terrain”', chip: 'Terrain-derived direction', legend: '<strong>Downhill direction</strong><div style="font-size:18px;letter-spacing:14px;color:#176f8b">↙ ↓ ↘</div><div class="legend-labels"><span>Gentle</span><span>Steeper</span></div>', profile: true
+        },
+        hybrid: {
+          kicker: 'Recommended evidence stack', title: 'Verified Hybrid',
+          copy: 'The soft gradient shows terrain-derived convergence. Solid blue lines and arrowheads show official mapped watercourses and their network direction.',
+          truthTitle: 'Two layers, two claims', truth: 'Dashed pale paths are inferred from terrain. Solid blue paths are mapped APA watercourses. Neither is an exact groundwater or contamination route.',
+          rows: [['Uses','DGT terrain + derived accumulation + APA hydrography'],['User reads','Likely drainage pattern versus mapped channel'],['Best data','APA fields include direction and downstream network links']],
+          footer: 'Suggested labels: “Terrain-derived” + “Mapped watercourse”', chip: 'Terrain estimate + APA network', legend: '<strong>Two kinds of evidence</strong><div style="display:grid;gap:6px;color:#60747d;font-size:9px"><span>┄┄ Terrain-derived path</span><span style="color:#0b7593">━━▶ Mapped watercourse</span></div>', profile: false
+        }
+      }
+
+      const lab = document.querySelector('#lab')
+      const tabs = [...document.querySelectorAll('.tab')]
+      const cards = [...document.querySelectorAll('.option-card')]
+
+      function selectVariant(key, shouldScroll = false) {
+        const item = variants[key]
+        lab.dataset.active = key
+        tabs.forEach(tab => tab.setAttribute('aria-selected', String(tab.dataset.option === key)))
+        cards.forEach(card => card.classList.toggle('active', card.dataset.option === key))
+        document.querySelector('#detail-kicker').textContent = item.kicker
+        document.querySelector('#lab-title').textContent = item.title
+        document.querySelector('#detail-copy').textContent = item.copy
+        document.querySelector('#truth-title').textContent = item.truthTitle
+        document.querySelector('#truth-copy').textContent = item.truth
+        document.querySelector('#detail-list').innerHTML = item.rows.map(([label,value]) => `<li><small>${label}</small><span>${value}</span></li>`).join('')
+        document.querySelector('#detail-footer').textContent = item.footer
+        document.querySelector('#data-chip').textContent = item.chip
+        document.querySelector('#map-legend').innerHTML = item.legend
+        document.querySelector('#profile').hidden = !item.profile
+        if (shouldScroll) lab.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
+
+      tabs.forEach(tab => tab.addEventListener('click', () => selectVariant(tab.dataset.option)))
+      cards.forEach(card => card.addEventListener('click', () => selectVariant(card.dataset.option, true)))
+    </script>
+  </body>
+</html>

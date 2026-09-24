@@ -1,0 +1,34 @@
+.lang-toggle {
+  position: absolute;
+  top: calc(10px + var(--ws-safe-top));
+  left: calc(12px + var(--ws-safe-left));
+  z-index: 1400;
+  display: inline-flex;
+  align-items: center;
+  padding: 3px;
+  border-radius: var(--ws-radius-pill);
+  border: 1px solid color-mix(in srgb, var(--ws-line) 85%, transparent);
+  background: color-mix(in srgb, var(--ws-surface) 94%, transparent);
+  box-shadow: var(--ws-shadow-sm);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.lang-toggle-btn {
+  min-width: 36px;
+  height: 28px;
+  padding: 0 9px;
+  border: none;
+  border-radius: var(--ws-radius-pill);
+  background: transparent;
+  color: var(--ws-ink-soft);
+  font-size: 0.72rem;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+
+.lang-toggle-btn--active {
+  background: var(--ws-ink);
+  color: var(--ws-surface);
+}

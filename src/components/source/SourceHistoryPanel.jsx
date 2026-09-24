@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
-import { HAZARD_TYPES } from '../../lib/hazards'
+import { hazardName, measureName, sessionName } from '../../lib/i18n'
+import { useLanguage } from '../../context/LanguageContext'
 import {
   buildSourceTimeline,
   countUnsafeReadings,
@@ -8,15 +9,18 @@ import {
 import { IconAlert, IconBeaker, IconClock } from '../ui/Icons'
 import './SourceHistoryPanel.css'
 
-function hazardSummary(hazardIds) {
+function hazardSummary(hazardIds, locale) {
   if (!hazardIds?.length) return null
-  return hazardIds.map((id) => HAZARD_TYPES.find((h) => h.id === id)?.en ?? id).join(', ')
+  return hazardIds.map((id) => hazardName(id, locale)).join(', ')
 }
 
-function ReadingList({ readings, qualityMeasures, compact = false }) {
-  const rows = formatReadingRows(readings, qualityMeasures)
+function ReadingList({ readings, qualityMeasures, compact = false, t }) {
+  const rows = formatReadingRows(readings, qualityMeasures).map((row) => ({
+    ...row,
+    name: measureName(row.id, row.name, t),
+  }))
   if (rows.length === 0) {
-    return <p className="source-history-empty">No readings logged.</p>
+    return <p className="source-history-empty">{t('history.noReadingsLogged')}</p>
   }
   return (
     <ul className={`source-reading-list${compact ? ' source-reading-list--compact' : ''}`}>
@@ -38,10 +42,10 @@ function ReadingList({ readings, qualityMeasures, compact = false }) {
           </span>
           <span className="source-reading-value">{row.value}</span>
           {row.safe === true && (
-            <span className="source-reading-badge source-reading-badge--safe">Safe</span>
+            <span className="source-reading-badge source-reading-badge--safe">{t('review.safe')}</span>
           )}
           {row.safe === false && (
-            <span className="source-reading-badge source-reading-badge--unsafe">Outside limit</span>
+            <span className="source-reading-badge source-reading-badge--unsafe">{t('review.outside')}</span>
           )}
         </li>
       ))}
@@ -50,7 +54,11 @@ function ReadingList({ readings, qualityMeasures, compact = false }) {
 }
 
 export default function SourceHistoryPanel({ sample, sessions, qualityMeasures }) {
-  const timeline = useMemo(() => buildSourceTimeline(sample, sessions), [sample, sessions])
+  const { locale, dateLocale, t } = useLanguage()
+  const timeline = useMemo(
+    () => buildSourceTimeline(sample, sessions, dateLocale),
+    [sample, sessions, dateLocale],
+  )
   const lastRecording = timeline[0]
   const previousTests = timeline.slice(1)
   const [focusedId, setFocusedId] = useState(lastRecording?.id ?? null)
@@ -63,7 +71,7 @@ export default function SourceHistoryPanel({ sample, sessions, qualityMeasures }
     <div className="source-history-panel">
       <section className="source-history-section" aria-labelledby="source-last-recording">
         <div className="source-history-section-head">
-          <h3 id="source-last-recording">Last recording</h3>
+          <h3 id="source-last-recording">{t('history.last')}</h3>
           {lastRecording && (
             <time className="source-history-when" dateTime={lastRecording.testedAt}>
               {lastRecording.dateLabel}
@@ -76,31 +84,37 @@ export default function SourceHistoryPanel({ sample, sessions, qualityMeasures }
             className={`source-last-card${unsafeCount > 0 ? ' source-last-card--alert' : ' source-last-card--ok'}`}
           >
             <div className="source-last-card-meta">
-              <span className="source-last-card-session">{lastRecording.sessionName}</span>
+              <span className="source-last-card-session">
+                {sessionName({ id: lastRecording.sessionId, label: lastRecording.sessionName }, t)}
+              </span>
               {lastRecording.rainfallMm72h != null && (
                 <span className="source-last-card-rain">
-                  {lastRecording.rainfallMm72h} mm rain · 72 h
+                  {t('history.rain72', { mm: lastRecording.rainfallMm72h })}
                 </span>
               )}
             </div>
-            <ReadingList readings={lastRecording.readings} qualityMeasures={qualityMeasures} />
-            {hazardSummary(lastRecording.hazards) && (
+            <ReadingList
+              readings={lastRecording.readings}
+              qualityMeasures={qualityMeasures}
+              t={t}
+            />
+            {hazardSummary(lastRecording.hazards, locale) && (
               <p className="source-last-card-hazards">
                 <IconAlert size={14} aria-hidden="true" />
-                {hazardSummary(lastRecording.hazards)}
+                {hazardSummary(lastRecording.hazards, locale)}
               </p>
             )}
           </div>
         ) : (
-          <p className="source-history-empty">No recordings yet.</p>
+          <p className="source-history-empty">{t('history.noneYet')}</p>
         )}
       </section>
 
       {previousTests.length > 0 && (
         <section className="source-history-section" aria-labelledby="source-previous-dates">
           <div className="source-history-section-head">
-            <h3 id="source-previous-dates">Previous test dates</h3>
-            <span className="source-history-count">{previousTests.length} earlier</span>
+            <h3 id="source-previous-dates">{t('history.previous')}</h3>
+            <span className="source-history-count">{t('history.earlier', { count: previousTests.length })}</span>
           </div>
           <div className="source-date-scroll" role="list">
             {previousTests.map((entry) => (
@@ -124,7 +138,7 @@ export default function SourceHistoryPanel({ sample, sessions, qualityMeasures }
 
       <section className="source-history-section" aria-labelledby="source-history-title">
         <div className="source-history-section-head">
-          <h3 id="source-history-title">History of this source</h3>
+          <h3 id="source-history-title">{t('history.title')}</h3>
         </div>
 
         <ol className="source-history-timeline">
@@ -157,10 +171,12 @@ export default function SourceHistoryPanel({ sample, sessions, qualityMeasures }
                       {entry.dateLabel}
                     </span>
                     {entry.isCurrent && (
-                      <span className="source-history-event-tag">Latest</span>
+                      <span className="source-history-event-tag">{t('history.latest')}</span>
                     )}
                   </div>
-                  <p className="source-history-event-session">{entry.sessionName}</p>
+                  <p className="source-history-event-session">
+                    {sessionName({ id: entry.sessionId, label: entry.sessionName }, t)}
+                  </p>
 
                   {isFocused ? (
                     <>
@@ -168,23 +184,24 @@ export default function SourceHistoryPanel({ sample, sessions, qualityMeasures }
                         readings={entry.readings}
                         qualityMeasures={qualityMeasures}
                         compact
+                        t={t}
                       />
                       {entry.rainfallMm72h != null && (
                         <p className="source-history-event-note">
-                          {entry.rainfallMm72h} mm rainfall in prior 72 hours
+                          {t('history.rainPrior', { mm: entry.rainfallMm72h })}
                         </p>
                       )}
-                      {hazardSummary(entry.hazards) && (
+                      {hazardSummary(entry.hazards, locale) && (
                         <p className="source-history-event-hazards">
-                          Hazards: {hazardSummary(entry.hazards)}
+                          {t('history.hazards', { list: hazardSummary(entry.hazards, locale) })}
                         </p>
                       )}
                     </>
                   ) : (
                     <p className="source-history-event-preview">
                       {formatReadingRows(entry.readings, qualityMeasures)
-                        .map((r) => `${r.name} ${r.value}`)
-                        .join(' · ') || 'No readings'}
+                        .map((r) => `${measureName(r.id, r.name, t)} ${r.value}`)
+                        .join(' · ') || t('history.noReadings')}
                     </p>
                   )}
                 </button>

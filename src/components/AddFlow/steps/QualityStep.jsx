@@ -1,18 +1,21 @@
 import { useState } from 'react'
 import { DEFAULT_QUALITY_MEASURES } from '../../../lib/mockData'
 import { getMeasureScale } from '../../../lib/qualityBands'
+import { measureName } from '../../../lib/i18n'
+import { useLanguage } from '../../../context/LanguageContext'
 import SafetyScalePicker from '../SafetyScalePicker'
 
 const COMMON_MEASURE_IDS = new Set(DEFAULT_QUALITY_MEASURES.map((m) => m.id))
 
-function readingSummary(measure, value) {
-  if (!value) return 'Tap to add'
+function readingSummary(measure, value, t) {
+  if (!value) return t('quality.tapToAdd')
   const scale = getMeasureScale(measure.id)
   const unit = scale?.unit ? ` ${scale.unit}` : ''
   return `${value}${unit}`
 }
 
 export default function QualityStep({ qualityMeasures, readings, onChange, onAddMeasure }) {
+  const { t } = useLanguage()
   const [expandedId, setExpandedId] = useState(null)
   const [addingNew, setAddingNew] = useState(false)
   const [newName, setNewName] = useState('')
@@ -46,13 +49,14 @@ export default function QualityStep({ qualityMeasures, readings, onChange, onAdd
     const currentValue = valueFor(measure.id)
     const isExpanded = expandedId === measure.id
     const isCustom = !scale
-    const summary = readingSummary(measure, currentValue)
+    const summary = readingSummary(measure, currentValue, t)
+    const displayName = measureName(measure.id, measure.name, t)
     const subline = isExpanded
       ? isCustom
-        ? measure.scale || 'Enter your reading'
+        ? measure.scale || t('quality.enterReading')
         : currentValue
           ? `${currentValue}${scale?.unit ? ` ${scale.unit}` : ''}`
-          : scale?.unit ?? 'Slide to your reading'
+          : scale?.unit ?? t('quality.slideReading')
       : summary
 
     return (
@@ -67,7 +71,7 @@ export default function QualityStep({ qualityMeasures, readings, onChange, onAdd
           aria-expanded={isExpanded}
         >
           <span className="measure-row-toggle-main">
-            <strong>{measure.name}</strong>
+            <strong>{displayName}</strong>
             <span className="measure-row-summary">{subline}</span>
           </span>
           <span className="measure-row-chevron" aria-hidden="true">
@@ -86,12 +90,12 @@ export default function QualityStep({ qualityMeasures, readings, onChange, onAdd
             ) : (
               <div className="measure-custom">
                 {measure.scale ? (
-                  <p className="measure-custom-scale">Scale: {measure.scale}</p>
+                  <p className="measure-custom-scale">{t('quality.scale', { scale: measure.scale })}</p>
                 ) : null}
                 <input
                   type="text"
                   className="measure-custom-input"
-                  placeholder="Enter reading"
+                  placeholder={t('quality.readingPlaceholder')}
                   value={currentValue}
                   onChange={(e) => setValue(measure.id, e.target.value)}
                 />
@@ -105,8 +109,8 @@ export default function QualityStep({ qualityMeasures, readings, onChange, onAdd
 
   return (
     <div className="flow-step">
-      <h2>What do the test strips show?</h2>
-      <p className="flow-hint">Expand a test to enter your reading — at least one required.</p>
+      <h2>{t('quality.title')}</h2>
+      <p className="flow-hint">{t('quality.hint')}</p>
 
       <div className="measure-list">
         {commonMeasures.map(renderMeasure)}
@@ -117,28 +121,28 @@ export default function QualityStep({ qualityMeasures, readings, onChange, onAdd
         <form className="new-measure-form" onSubmit={handleAddMeasure}>
           <input
             type="text"
-            placeholder="Measure name (e.g. E. coli)"
+            placeholder={t('quality.newName')}
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
           />
           <input
             type="text"
-            placeholder="Scale (e.g. present / absent)"
+            placeholder={t('quality.newScale')}
             value={newScale}
             onChange={(e) => setNewScale(e.target.value)}
           />
           <div className="new-measure-form-actions">
             <button type="button" className="btn-ghost" onClick={() => setAddingNew(false)}>
-              Cancel
+              {t('flow.cancel')}
             </button>
             <button type="submit" className="btn-secondary">
-              Add measure
+              {t('quality.addMeasure')}
             </button>
           </div>
         </form>
       ) : (
         <button type="button" className="btn-ghost measure-add-btn" onClick={() => setAddingNew(true)}>
-          + Add a new measure
+          {t('quality.addNew')}
         </button>
       )}
     </div>

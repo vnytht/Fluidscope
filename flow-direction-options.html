@@ -1,0 +1,699 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light" />
+    <title>WaterScope — Flow direction options</title>
+    <style>
+      :root {
+        --ink: #0f2d3a;
+        --ink-soft: #58707b;
+        --ink-faint: #8ba0a9;
+        --paper: #f4f5ef;
+        --surface: #ffffff;
+        --line: rgba(15, 45, 58, 0.12);
+        --teal: #168396;
+        --teal-bright: #9ee9ed;
+        --amber: #c47a1a;
+        --coral: #d95b49;
+        --navy: #0d3644;
+        --shadow: 0 22px 60px rgba(18, 47, 55, 0.14);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: var(--ink);
+        background: var(--paper);
+      }
+
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body { margin: 0; min-width: 320px; }
+      button { font: inherit; }
+
+      .page-shell {
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 8% 4%, rgba(158, 233, 237, 0.34), transparent 25rem),
+          radial-gradient(circle at 92% 32%, rgba(240, 162, 59, 0.11), transparent 30rem),
+          var(--paper);
+      }
+
+      .hero {
+        max-width: 1220px;
+        margin: 0 auto;
+        padding: 58px 34px 36px;
+        display: grid;
+        grid-template-columns: minmax(0, 1.35fr) minmax(280px, .65fr);
+        gap: 56px;
+        align-items: end;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        margin: 0 0 18px;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: .12em;
+        text-transform: uppercase;
+        color: var(--teal);
+      }
+
+      .eyebrow::before {
+        content: "";
+        width: 27px;
+        height: 2px;
+        border-radius: 99px;
+        background: currentColor;
+      }
+
+      h1 {
+        max-width: 780px;
+        margin: 0;
+        font-size: clamp(44px, 6vw, 78px);
+        line-height: .96;
+        letter-spacing: -.055em;
+        font-weight: 760;
+      }
+
+      .hero-copy {
+        margin: 24px 0 0;
+        max-width: 650px;
+        color: var(--ink-soft);
+        font-size: 18px;
+        line-height: 1.55;
+      }
+
+      .context-card {
+        border-top: 1px solid var(--line);
+        padding-top: 20px;
+      }
+
+      .context-card strong {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 13px;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+      }
+
+      .context-card p {
+        margin: 0;
+        color: var(--ink-soft);
+        font-size: 14px;
+        line-height: 1.6;
+      }
+
+      .jump-bar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        border-block: 1px solid var(--line);
+        background: rgba(244, 245, 239, .86);
+        backdrop-filter: blur(16px);
+      }
+
+      .jump-bar__inner {
+        max-width: 1220px;
+        margin: 0 auto;
+        padding: 12px 34px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        overflow-x: auto;
+      }
+
+      .jump-bar span {
+        margin-right: auto;
+        white-space: nowrap;
+        color: var(--ink-soft);
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .jump-bar a,
+      .motion-toggle {
+        flex: 0 0 auto;
+        min-height: 38px;
+        padding: 9px 14px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, .72);
+        color: var(--ink);
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .motion-toggle { background: var(--navy); color: white; }
+
+      .options {
+        max-width: 1220px;
+        margin: 0 auto;
+        padding: 52px 34px 80px;
+        display: grid;
+        gap: 72px;
+      }
+
+      .option {
+        scroll-margin-top: 76px;
+        display: grid;
+        grid-template-columns: minmax(330px, .85fr) minmax(500px, 1.15fr);
+        gap: 64px;
+        align-items: center;
+      }
+
+      .option:nth-child(even) .option-copy { order: 2; }
+      .option:nth-child(even) .stage { order: 1; }
+
+      .option-number {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 18px;
+        color: var(--ink-faint);
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: .12em;
+        text-transform: uppercase;
+      }
+
+      .option-number b {
+        display: grid;
+        place-items: center;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: var(--ink);
+        color: white;
+        letter-spacing: 0;
+      }
+
+      .badge {
+        display: inline-flex;
+        margin-left: 6px;
+        padding: 6px 9px;
+        border-radius: 999px;
+        background: #d9f1e3;
+        color: #236f49;
+        font-size: 10px;
+        font-weight: 850;
+        letter-spacing: .1em;
+      }
+
+      h2 {
+        margin: 0;
+        font-size: clamp(34px, 4vw, 53px);
+        line-height: 1;
+        letter-spacing: -.045em;
+      }
+
+      .option-lede {
+        margin: 18px 0 22px;
+        color: var(--ink-soft);
+        font-size: 17px;
+        line-height: 1.55;
+      }
+
+      .principles {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        gap: 12px;
+      }
+
+      .principles li {
+        position: relative;
+        padding-left: 26px;
+        color: var(--ink-soft);
+        font-size: 14px;
+        line-height: 1.5;
+      }
+
+      .principles li::before {
+        content: "";
+        position: absolute;
+        left: 2px;
+        top: 8px;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--teal);
+        box-shadow: 0 0 0 5px rgba(22, 131, 150, .11);
+      }
+
+      .fit {
+        margin-top: 25px;
+        padding-top: 18px;
+        border-top: 1px solid var(--line);
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+
+      .fit small { display: block; color: var(--ink-faint); font-weight: 750; text-transform: uppercase; letter-spacing: .08em; }
+      .fit strong { display: block; margin-top: 5px; font-size: 14px; line-height: 1.35; }
+
+      .stage {
+        position: relative;
+        min-height: 630px;
+        border-radius: 34px;
+        background:
+          linear-gradient(145deg, rgba(15, 45, 58, .05), rgba(255,255,255,.54)),
+          rgba(255,255,255,.52);
+        border: 1px solid rgba(15,45,58,.08);
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+      }
+
+      .stage::before {
+        content: "";
+        position: absolute;
+        width: 320px;
+        height: 320px;
+        border-radius: 50%;
+        background: rgba(158, 233, 237, .18);
+        filter: blur(5px);
+        transform: translate(-190px, -190px);
+      }
+
+      .phone {
+        position: relative;
+        width: 350px;
+        height: 584px;
+        border: 8px solid #102f3a;
+        border-radius: 42px;
+        overflow: hidden;
+        background: #d9dfd0;
+        box-shadow: 0 28px 50px rgba(15, 45, 58, .22);
+      }
+
+      .phone::after {
+        content: "";
+        position: absolute;
+        z-index: 12;
+        left: 50%;
+        bottom: 7px;
+        width: 108px;
+        height: 4px;
+        border-radius: 99px;
+        transform: translateX(-50%);
+        background: rgba(15,45,58,.22);
+      }
+
+      .map {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        background:
+          linear-gradient(29deg, transparent 49.2%, rgba(255,255,255,.33) 49.5% 50.4%, transparent 50.7%),
+          linear-gradient(103deg, transparent 48.8%, rgba(192,163,126,.22) 49.2% 50.2%, transparent 50.7%),
+          #dce2d2;
+      }
+
+      .map::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(ellipse at 72% 30%, rgba(164,187,141,.52) 0 12%, transparent 12.5%),
+          radial-gradient(ellipse at 43% 63%, rgba(164,187,141,.48) 0 18%, transparent 18.5%),
+          radial-gradient(ellipse at 85% 77%, rgba(164,187,141,.43) 0 14%, transparent 14.5%);
+      }
+
+      .map-label {
+        position: absolute;
+        z-index: 2;
+        color: rgba(69, 77, 68, .68);
+        font: 600 10px/1.2 Georgia, serif;
+      }
+
+      .map-label--one { top: 92px; left: 40px; }
+      .map-label--two { top: 218px; right: 35px; }
+      .map-label--three { top: 338px; left: 38px; }
+
+      .coast {
+        position: absolute;
+        z-index: 1;
+        left: -56px;
+        top: -16px;
+        width: 125px;
+        height: 470px;
+        border-radius: 20% 75% 62% 10%;
+        background: linear-gradient(90deg, #add1d4, #c8e0dd);
+        box-shadow: 6px 0 0 rgba(26, 116, 141, .28);
+        transform: rotate(-2deg);
+      }
+
+      .map-svg { position: absolute; inset: 0; z-index: 3; width: 100%; height: 100%; }
+      .basin { stroke-width: 1.5; }
+      .basin.current { fill: rgba(217,91,73,.15); stroke: rgba(201,70,56,.65); }
+      .basin.up { fill: rgba(90,168,184,.11); stroke: rgba(31,122,140,.48); }
+      .basin.down { fill: rgba(240,162,59,.12); stroke: rgba(196,122,26,.5); }
+      .river-thread { fill: none; stroke: rgba(19,106,132,.34); stroke-width: 2.2; stroke-linecap: round; }
+      .river-thread.minor { stroke-width: 1.2; opacity: .7; }
+
+      .source-pin {
+        position: absolute;
+        z-index: 8;
+        left: 167px;
+        top: 195px;
+        width: 24px;
+        height: 24px;
+        border: 4px solid white;
+        border-radius: 50%;
+        background: #2d9168;
+        box-shadow: 0 0 0 3px var(--navy), 0 2px 7px rgba(15,45,58,.38);
+      }
+
+      .map-pill {
+        position: absolute;
+        z-index: 9;
+        top: 15px;
+        left: 15px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 9px 12px;
+        border-radius: 999px;
+        background: rgba(255,255,255,.9);
+        box-shadow: 0 3px 14px rgba(15,45,58,.12);
+        color: var(--ink);
+        font-size: 11px;
+        font-weight: 760;
+      }
+
+      .map-pill i {
+        display: block;
+        width: 13px;
+        height: 6px;
+        border-radius: 99px;
+        background: var(--teal-bright);
+        box-shadow: 0 0 0 1px rgba(13,54,68,.3);
+      }
+
+      .sheet {
+        position: absolute;
+        z-index: 10;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        min-height: 174px;
+        padding: 12px 18px 24px;
+        border-radius: 24px 24px 0 0;
+        background: rgba(255,255,255,.97);
+        box-shadow: 0 -12px 35px rgba(15,45,58,.14);
+      }
+
+      .handle { width: 32px; height: 4px; margin: 0 auto 11px; border-radius: 99px; background: #d9e1e3; }
+      .sheet-kicker { margin: 0 0 4px; color: var(--teal); font-size: 9px; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
+      .sheet h3 { margin: 0; font-size: 19px; letter-spacing: -.025em; }
+      .sheet p { margin: 6px 0 0; color: var(--ink-soft); font-size: 11px; line-height: 1.45; }
+      .sheet-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 13px; padding-top: 11px; border-top: 1px solid var(--line); }
+      .sheet-row span { font-size: 11px; font-weight: 750; }
+      .sheet-action { border: 0; border-radius: 999px; background: #e8f4f5; color: var(--teal); padding: 7px 10px; font-size: 10px; font-weight: 800; }
+
+      /* Option 1: particles */
+      .particle-path { fill: none; stroke: url(#particleGradient); stroke-linecap: round; stroke-width: 5; stroke-dasharray: 2 26; filter: url(#softGlow); animation: current 2.4s linear infinite; }
+      .particle-path.alt { animation-duration: 3.1s; animation-delay: -.9s; stroke-width: 3.5; opacity: .86; }
+      .particle-path.fast { animation-duration: 1.85s; animation-delay: -.4s; }
+
+      @keyframes current { to { stroke-dashoffset: -56; } }
+
+      /* Option 2: relay */
+      .relay-glow { fill: none; stroke: rgba(240,162,59,.17); stroke-width: 30; stroke-linecap: round; }
+      .relay-core { fill: none; stroke: rgba(196,122,26,.52); stroke-width: 9; stroke-linecap: round; }
+      .relay-pulse { fill: none; stroke: rgba(244,255,250,.96); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 24 180; animation: relay 4.6s ease-in-out infinite; filter: url(#relayGlow); }
+      .relay-node { fill: white; stroke: var(--amber); stroke-width: 2; }
+      .relay-number { fill: var(--ink); font: 800 9px Inter, sans-serif; text-anchor: middle; dominant-baseline: central; }
+      @keyframes relay { from { stroke-dashoffset: 204; } to { stroke-dashoffset: -204; } }
+
+      /* Option 3: story */
+      .journey-route { fill: none; stroke: var(--teal); stroke-width: 4; stroke-linecap: round; stroke-dasharray: 7 7; animation: route-drift 2.2s linear infinite; }
+      @keyframes route-drift { to { stroke-dashoffset: -28; } }
+      .waypoint { fill: white; stroke: var(--navy); stroke-width: 3; }
+      .waypoint-num { fill: var(--navy); font: 850 11px Inter, sans-serif; text-anchor: middle; dominant-baseline: central; }
+      .journey-card { margin-top: 12px; padding: 10px 11px; border: 1px solid rgba(22,131,150,.16); border-radius: 12px; background: #f1f8f7; }
+      .journey-line { display: flex; align-items: flex-start; justify-content: space-between; position: relative; }
+      .journey-line::before { content: ""; position: absolute; left: 13%; right: 13%; top: 9px; height: 2px; background: #9fcfd1; }
+      .journey-stop { position: relative; z-index: 1; width: 31%; text-align: center; color: var(--ink-soft); font-size: 8px; line-height: 1.25; }
+      .journey-stop b { display: grid; place-items: center; width: 20px; height: 20px; margin: 0 auto 5px; border-radius: 50%; background: var(--navy); color: white; font-size: 9px; }
+
+      .comparison {
+        max-width: 1152px;
+        margin: 0 auto 80px;
+        padding: 0 34px;
+      }
+
+      .recommendation {
+        padding: clamp(30px, 5vw, 58px);
+        border-radius: 32px;
+        background: var(--navy);
+        color: white;
+        display: grid;
+        grid-template-columns: 1.25fr .75fr;
+        gap: 50px;
+        align-items: end;
+        box-shadow: var(--shadow);
+      }
+
+      .recommendation .eyebrow { color: var(--teal-bright); }
+      .recommendation h2 { max-width: 650px; }
+      .recommendation p { color: rgba(255,255,255,.68); line-height: 1.6; }
+      .recommendation ol { margin: 0; padding-left: 20px; color: rgba(255,255,255,.78); font-size: 14px; line-height: 1.6; }
+      .recommendation li + li { margin-top: 8px; }
+
+      .page-footer {
+        padding: 0 34px 48px;
+        text-align: center;
+        color: var(--ink-faint);
+        font-size: 12px;
+      }
+
+      .motion-paused *, .motion-paused *::before, .motion-paused *::after { animation-play-state: paused !important; }
+
+      @media (prefers-reduced-motion: reduce) {
+        html { scroll-behavior: auto; }
+        *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; }
+      }
+
+      @media (max-width: 900px) {
+        .hero { grid-template-columns: 1fr; gap: 28px; }
+        .option, .recommendation { grid-template-columns: 1fr; }
+        .option:nth-child(even) .option-copy, .option:nth-child(even) .stage { order: initial; }
+        .option { gap: 32px; }
+      }
+
+      @media (max-width: 560px) {
+        .hero { padding: 38px 20px 28px; }
+        .hero-copy { font-size: 16px; }
+        .jump-bar__inner { padding: 10px 20px; }
+        .jump-bar__inner > span { display: none; }
+        .options { padding: 42px 20px 64px; gap: 62px; }
+        .stage { min-height: 560px; margin-inline: -20px; border-radius: 0; border-inline: 0; }
+        .phone { transform: scale(.92); }
+        .comparison { padding: 0 20px; }
+        .recommendation { border-radius: 24px; gap: 22px; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page-shell" id="page">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">WaterScope concept lab</p>
+          <h1>Make the watershed feel alive.</h1>
+          <p class="hero-copy">Three ways to show where surface water moves after someone selects a source. Each keeps the current catchment meaning while making direction easier to see on a phone.</p>
+        </div>
+        <aside class="context-card">
+          <strong>The design constraint</strong>
+          <p>Fractured granite can react quickly after rain, but the map cannot claim an exact underground path. These concepts show landscape-scale surface drainage and say so plainly.</p>
+        </aside>
+      </header>
+
+      <nav class="jump-bar" aria-label="Concept navigation">
+        <div class="jump-bar__inner">
+          <span>Explore the directions</span>
+          <a href="#living-current">01 Living Current</a>
+          <a href="#catchment-relay">02 Catchment Relay</a>
+          <a href="#water-journey">03 Water Journey</a>
+          <button class="motion-toggle" id="motion-toggle" type="button" aria-pressed="false">Pause motion</button>
+        </div>
+      </nav>
+
+      <section class="options" aria-label="Water flow direction concepts">
+        <article class="option" id="living-current">
+          <div class="option-copy">
+            <div class="option-number"><b>01</b> Organic network <span class="badge">Recommended</span></div>
+            <h2>Living Current</h2>
+            <p class="option-lede">Soft light traces travel along the river network like glints on moving water. The flow is immediately visible without covering the map in arrow icons.</p>
+            <ul class="principles">
+              <li>Particles follow mapped river lines, with fewer traces on minor tributaries.</li>
+              <li>A bright head and fading tail make direction readable at a glance.</li>
+              <li>Motion pauses during pan and zoom; static chevrons replace it for reduced motion.</li>
+            </ul>
+            <div class="fit">
+              <div><small>Best for</small><strong>Feeling the whole watershed move</strong></div>
+              <div><small>Main risk</small><strong>River direction needs data validation</strong></div>
+            </div>
+          </div>
+          <div class="stage">
+            <div class="phone" aria-label="Living Current mobile map preview">
+              <div class="map">
+                <div class="coast"></div>
+                <span class="map-label map-label--one">Carreço</span><span class="map-label map-label--two">Perre</span><span class="map-label map-label--three">Areosa</span>
+                <svg class="map-svg" viewBox="0 0 334 568" aria-hidden="true">
+                  <defs>
+                    <linearGradient id="particleGradient"><stop offset="0" stop-color="#d9ffff"/><stop offset=".35" stop-color="#65dce5"/><stop offset="1" stop-color="#168396" stop-opacity="0"/></linearGradient>
+                    <filter id="softGlow"><feGaussianBlur stdDeviation=".7" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                  </defs>
+                  <path class="basin up" d="M70,42 L195,30 L282,91 L270,204 L202,235 L90,192 Z"/>
+                  <path class="basin current" d="M90,192 L202,235 L271,205 L298,322 L217,379 L94,346 Z"/>
+                  <path class="basin down" d="M94,346 L217,379 L298,322 L324,444 L205,481 L76,431 Z"/>
+                  <path class="river-thread minor" d="M262 71 C240 108 223 135 198 170 C183 190 183 215 170 244"/>
+                  <path class="river-thread minor" d="M109 78 C120 120 142 153 170 178 C184 191 181 219 170 244"/>
+                  <path class="river-thread" d="M170 148 C180 203 165 254 187 292 C207 329 185 364 156 402 C135 430 112 449 74 465"/>
+                  <path class="river-thread minor" d="M272 271 C239 281 219 285 187 292"/>
+                  <path class="particle-path alt" d="M262 71 C240 108 223 135 198 170 C183 190 183 215 170 244"/>
+                  <path class="particle-path" d="M109 78 C120 120 142 153 170 178 C184 191 181 219 170 244"/>
+                  <path class="particle-path fast" d="M170 148 C180 203 165 254 187 292 C207 329 185 364 156 402 C135 430 112 449 74 465"/>
+                  <path class="particle-path alt" d="M272 271 C239 281 219 285 187 292"/>
+                </svg>
+                <div class="map-pill"><i></i> Surface drainage direction</div>
+                <div class="source-pin" aria-hidden="true"></div>
+              </div>
+              <div class="sheet">
+                <div class="handle"></div>
+                <p class="sheet-kicker">Selected source · Borehole</p>
+                <h3>Water moves through this basin</h3>
+                <p>Moving traces show the general direction water drains through this landscape.</p>
+                <div class="sheet-row"><span>After rain · faster response likely</span><button class="sheet-action">Why?</button></div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="option" id="catchment-relay">
+          <div class="option-copy">
+            <div class="option-number"><b>02</b> Basin sequence</div>
+            <h2>Catchment Relay</h2>
+            <p class="option-lede">A broad pulse hands water from one catchment to the next, then dissolves at the mapped outlet. It turns the data’s trusted basin sequence into a short visual event.</p>
+            <ul class="principles">
+              <li>One slow 4–6 second playback avoids a distracting permanent loop.</li>
+              <li>Numbered boundary nodes keep direction clear when motion is paused.</li>
+              <li>The wide schematic ribbon avoids claiming an exact river or groundwater route.</li>
+            </ul>
+            <div class="fit">
+              <div><small>Best for</small><strong>Showing downstream catchment impact</strong></div>
+              <div><small>Main risk</small><strong>Can feel abstract at neighborhood zoom</strong></div>
+            </div>
+          </div>
+          <div class="stage">
+            <div class="phone" aria-label="Catchment Relay mobile map preview">
+              <div class="map">
+                <div class="coast"></div>
+                <span class="map-label map-label--one">Carreço</span><span class="map-label map-label--two">Perre</span><span class="map-label map-label--three">Areosa</span>
+                <svg class="map-svg" viewBox="0 0 334 568" aria-hidden="true">
+                  <defs><filter id="relayGlow"><feGaussianBlur stdDeviation="1.8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+                  <path class="basin up" d="M70,42 L195,30 L282,91 L270,204 L202,235 L90,192 Z"/>
+                  <path class="basin current" d="M90,192 L202,235 L271,205 L298,322 L217,379 L94,346 Z"/>
+                  <path class="basin down" d="M94,346 L217,379 L298,322 L324,444 L205,481 L76,431 Z"/>
+                  <path class="relay-glow" d="M179 208 C190 246 203 276 199 309 C193 352 154 388 80 452"/>
+                  <path class="relay-core" d="M179 208 C190 246 203 276 199 309 C193 352 154 388 80 452"/>
+                  <path class="relay-pulse" d="M179 208 C190 246 203 276 199 309 C193 352 154 388 80 452"/>
+                  <circle class="relay-node" cx="199" cy="309" r="11"/><text class="relay-number" x="199" y="309">2</text>
+                  <circle class="relay-node" cx="80" cy="452" r="11"/><text class="relay-number" x="80" y="452">3</text>
+                </svg>
+                <div class="map-pill"><i style="background:#edb86f"></i> Surface path · 3 catchments</div>
+                <div class="source-pin" aria-hidden="true"></div>
+              </div>
+              <div class="sheet">
+                <div class="handle"></div>
+                <p class="sheet-kicker">Surface path</p>
+                <h3>Toward the mapped outlet</h3>
+                <p>Light follows lower catchments. It is a landscape guide, not an exact stream or travel time.</p>
+                <div class="sheet-row"><span>Moving through catchment 2 of 3</span><button class="sheet-action">Replay</button></div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="option" id="water-journey">
+          <div class="option-copy">
+            <div class="option-number"><b>03</b> Comprehension first</div>
+            <h2>Water Journey</h2>
+            <p class="option-lede">Three numbered landmarks turn hydrology into a route people can retell: this source, a receiving stream, and a recognizable downstream destination.</p>
+            <ul class="principles">
+              <li>The map and bottom sheet repeat the same 1 → 2 → 3 sequence.</li>
+              <li>Direction remains fully readable without animation or color.</li>
+              <li>Local place names make a technical catchment model meaningful to residents.</li>
+            </ul>
+            <div class="fit">
+              <div><small>Best for</small><strong>Teaching and community workshops</strong></div>
+              <div><small>Main risk</small><strong>Named destinations need curation</strong></div>
+            </div>
+          </div>
+          <div class="stage">
+            <div class="phone" aria-label="Water Journey mobile map preview">
+              <div class="map">
+                <div class="coast"></div>
+                <span class="map-label map-label--one">Carreço</span><span class="map-label map-label--two">Ribeira de Nogueira</span><span class="map-label map-label--three">Toward Rio Lima</span>
+                <svg class="map-svg" viewBox="0 0 334 568" aria-hidden="true">
+                  <path class="basin current" d="M70,42 L195,30 L282,91 L270,204 L202,235 L90,192 Z"/>
+                  <path class="basin down" d="M90,192 L202,235 L271,205 L298,322 L217,379 L94,346 Z"/>
+                  <path class="journey-route" d="M180 196 C204 229 230 264 216 309 C202 354 145 389 78 430"/>
+                  <circle class="waypoint" cx="180" cy="196" r="14"/><text class="waypoint-num" x="180" y="196">1</text>
+                  <circle class="waypoint" cx="216" cy="309" r="14"/><text class="waypoint-num" x="216" y="309">2</text>
+                  <circle class="waypoint" cx="78" cy="430" r="14"/><text class="waypoint-num" x="78" y="430">3</text>
+                </svg>
+                <div class="map-pill"><i></i> Where this water goes</div>
+              </div>
+              <div class="sheet" style="min-height:205px">
+                <div class="handle"></div>
+                <p class="sheet-kicker">Water journey</p>
+                <h3>After rain, this source responds quickly</h3>
+                <div class="journey-card">
+                  <div class="journey-line">
+                    <div class="journey-stop"><b>1</b>Selected source</div>
+                    <div class="journey-stop"><b>2</b>Receiving stream</div>
+                    <div class="journey-stop"><b>3</b>Rio Lima</div>
+                  </div>
+                </div>
+                <p>Estimated from terrain and catchment links · medium confidence</p>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section class="comparison">
+        <div class="recommendation">
+          <div>
+            <p class="eyebrow">Suggested direction</p>
+            <h2>Start with Living Current, borrow the journey card.</h2>
+            <p>The moving river traces give the map the “cool” moment, while a compact 1 → 2 → 3 summary underneath gives people a clear explanation and an accessible fallback.</p>
+          </div>
+          <ol>
+            <li>Validate river coordinate direction against the network topology.</li>
+            <li>Prototype one inland route and one coastal basin.</li>
+            <li>Test whether people can identify downstream in five seconds.</li>
+          </ol>
+        </div>
+      </section>
+
+      <footer class="page-footer">Standalone concept page · no WaterScope application files changed</footer>
+    </main>
+    <script>
+      const page = document.querySelector('#page')
+      const toggle = document.querySelector('#motion-toggle')
+      toggle.addEventListener('click', () => {
+        const paused = page.classList.toggle('motion-paused')
+        toggle.textContent = paused ? 'Play motion' : 'Pause motion'
+        toggle.setAttribute('aria-pressed', String(paused))
+      })
+    </script>
+  </body>
+</html>

@@ -1,7 +1,10 @@
 import { useState } from 'react'
-import { HAZARD_ACTIVITY, HAZARD_TYPES, hazardsByActivity } from '../../../lib/hazards'
+import { hazardsByActivity } from '../../../lib/hazards'
+import { hazardName } from '../../../lib/i18n'
+import { useLanguage } from '../../../context/LanguageContext'
 
 export default function HazardStep({ value, onChange }) {
+  const { locale, t } = useLanguage()
   const selected = value ?? []
   const noneKnown = value !== null && selected.length === 0
   const [expandedGroup, setExpandedGroup] = useState(null)
@@ -17,10 +20,10 @@ export default function HazardStep({ value, onChange }) {
   }
 
   function groupSummary(activity) {
-    const picked = hazardsByActivity(activity).filter((t) => selected.includes(t.id))
-    if (picked.length === 0) return 'Tap to add'
-    if (picked.length === 1) return picked[0].en
-    return `${picked.length} selected`
+    const picked = hazardsByActivity(activity).filter((item) => selected.includes(item.id))
+    if (picked.length === 0) return t('quality.tapToAdd')
+    if (picked.length === 1) return hazardName(picked[0].id, locale)
+    return t('hazard.selectedCount', { count: picked.length })
   }
 
   function openGroup(activity) {
@@ -30,10 +33,8 @@ export default function HazardStep({ value, onChange }) {
 
   return (
     <div className="flow-step">
-      <h2>Hazards near this source?</h2>
-      <p className="flow-hint">
-        Septic tanks aren&apos;t on any official map here — tap None, or expand a group to report.
-      </p>
+      <h2>{t('hazard.title')}</h2>
+      <p className="flow-hint">{t('hazard.hint')}</p>
 
       <button
         type="button"
@@ -41,7 +42,7 @@ export default function HazardStep({ value, onChange }) {
         onClick={chooseNone}
         aria-pressed={noneKnown}
       >
-        None that I know of
+        {t('hazard.none')}
       </button>
 
       <div className="hazard-group-list">
@@ -63,9 +64,9 @@ export default function HazardStep({ value, onChange }) {
                 aria-expanded={isExpanded}
               >
                 <span className="hazard-group-toggle-main">
-                  <strong>{group.label}</strong>
+                  <strong>{t(`hazard.${activity}`)}</strong>
                   {!isExpanded && <span className="hazard-group-summary">{summary}</span>}
-                  {isExpanded && <span className="hazard-group-hint">{group.hint}</span>}
+                  {isExpanded && <span className="hazard-group-hint">{t(`hazard.${activity}Hint`)}</span>}
                 </span>
                 <span className="hazard-group-chevron" aria-hidden="true">
                   {isExpanded ? '▾' : '▸'}
@@ -81,12 +82,11 @@ export default function HazardStep({ value, onChange }) {
                         <button
                           key={type.id}
                           type="button"
-                          className={`chip chip--bilingual hazard-chip${isSelected ? ' chip--selected' : ''}`}
+                          className={`chip hazard-chip${isSelected ? ' chip--selected' : ''}`}
                           onClick={() => toggleType(type.id)}
                           aria-pressed={isSelected}
                         >
-                          <span className="chip-label-pt">{type.pt}</span>
-                          <span className="chip-label-en">{type.en}</span>
+                          {hazardName(type.id, locale)}
                         </button>
                       )
                     })}
@@ -100,10 +100,10 @@ export default function HazardStep({ value, onChange }) {
 
       {selected.length > 0 && (
         <p className="hazard-summary">
-          {selected.length} hazard{selected.length > 1 ? 's' : ''}:{' '}
-          {selected
-            .map((id) => HAZARD_TYPES.find((t) => t.id === id)?.en ?? id)
-            .join(', ')}
+          {t(selected.length === 1 ? 'hazard.summaryOne' : 'hazard.summary', {
+            count: selected.length,
+            list: selected.map((id) => hazardName(id, locale)).join(', '),
+          })}
         </p>
       )}
     </div>

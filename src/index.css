@@ -122,6 +122,75 @@ button {
     0 1px 4px rgba(15, 45, 58, 0.35);
 }
 
+.ws-marker-dot--upstream {
+  width: 20px;
+  height: 20px;
+  box-shadow:
+    0 0 0 4px #1f7a8c,
+    0 0 0 8px rgba(31, 122, 140, 0.22),
+    0 1px 4px rgba(15, 45, 58, 0.35);
+}
+
+.ws-marker-dot--downstream {
+  width: 20px;
+  height: 20px;
+  box-shadow:
+    0 0 0 4px var(--ws-amber),
+    0 0 0 8px rgba(212, 146, 42, 0.22),
+    0 1px 4px rgba(15, 45, 58, 0.35);
+}
+
+.impact-river-path {
+  animation: ws-flow-dashes 1.4s linear infinite;
+}
+
+@keyframes ws-flow-dashes {
+  to { stroke-dashoffset: -30; }
+}
+
+.land-flow-marker {
+  background: transparent;
+  border: none;
+}
+
+.land-flow-marker span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: #2f4d56;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(47, 77, 86, 0.18);
+  box-shadow: 0 1px 3px rgba(15, 45, 58, 0.12);
+  font-size: 14px;
+}
+
+.flow-arrow-marker span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(255, 250, 242, 0.92);
+  border: 1px solid currentColor;
+  box-shadow: 0 1px 4px rgba(15, 45, 58, 0.2);
+  font-size: 13px;
+}
+
+.water-feature-tooltip.leaflet-tooltip {
+  padding: 5px 8px;
+  border: 1px solid rgba(15, 45, 58, 0.14);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--ws-ink);
+  box-shadow: var(--ws-shadow-sm);
+  font-size: 0.7rem;
+  font-weight: 650;
+}
+
 .ws-marker--placement {
   background: transparent;
   border: none;

@@ -6,17 +6,24 @@ import QualityStep from './steps/QualityStep'
 import HazardStep from './steps/HazardStep'
 import ReviewStep from './steps/ReviewStep'
 import { IconClose } from '../ui/Icons'
+import { useLanguage } from '../../context/LanguageContext'
 import './AddFlow.css'
 
 const STEPS = ['location', 'sourceType', 'quality', 'hazard', 'review']
-const STEP_LABELS = {
-  location: 'Location',
-  sourceType: 'Source',
-  quality: 'Readings',
-  hazard: 'Hazard',
-  review: 'Review',
+
+function todayDate() {
+  return new Date().toISOString().slice(0, 10)
 }
 
+function emptySourceDetails() {
+  return {
+    localName: '',
+    depthMeters: '',
+    runsDry: '',
+    sampledAt: todayDate(),
+    recentRain: '',
+  }
+}
 export default function AddFlowSheet({
   editSampleId = null,
   initialData = null,
@@ -27,9 +34,11 @@ export default function AddFlowSheet({
   onStepChange,
   onSaved,
 }) {
+  const { t } = useLanguage()
   const { qualityMeasures, addQualityMeasure, addSample, updateSample } = useAppState()
   const [stepIndex, setStepIndex] = useState(0)
   const [sourceType, setSourceType] = useState(null)
+  const [sourceDetails, setSourceDetails] = useState(emptySourceDetails)
   const [readings, setReadings] = useState([])
   const [hazards, setHazards] = useState(null)
 
@@ -43,6 +52,13 @@ export default function AddFlowSheet({
   useEffect(() => {
     if (!editSampleId || !initialData) return
     setSourceType(initialData.sourceType)
+    setSourceDetails({
+      localName: initialData.localName ?? '',
+      depthMeters: initialData.depthMeters != null ? String(initialData.depthMeters) : '',
+      runsDry: initialData.runsDry ?? '',
+      sampledAt: initialData.sampledAt ? String(initialData.sampledAt).slice(0, 10) : todayDate(),
+      recentRain: initialData.recentRain ?? '',
+    })
     setReadings(initialData.readings)
     setHazards(initialData.hazards ?? [])
     onLocationChange(initialData.position)
@@ -68,9 +84,12 @@ export default function AddFlowSheet({
   function handleNext() {
     if (!canAdvance) return
     if (isLast) {
+      const depth = Number.parseFloat(sourceDetails.depthMeters)
       const payload = {
         position: location,
         sourceType,
+        depthMeters:
+          sourceType === 'Dug well' && Number.isFinite(depth) && depth >= 0 ? depth : null,
         readings,
         hazards: hazards ?? [],
       }
@@ -97,18 +116,18 @@ export default function AddFlowSheet({
   return (
     <div className="flow-sheet">
       <div className="flow-sheet-header">
-        <button type="button" className="flow-close" onClick={onClose} aria-label="Cancel">
+        <button type="button" className="flow-close" onClick={onClose} aria-label={t('flow.cancel')}>
           <IconClose />
         </button>
         {isEdit ? (
-          <h2 className="flow-edit-title">Edit source</h2>
+          <h2 className="flow-edit-title">{t('flow.editTitle')}</h2>
         ) : (
           <div className="flow-progress">
             {STEPS.map((s, i) => (
               <span
                 key={s}
                 className={`flow-dot${i === stepIndex ? ' flow-dot--active' : ''}${i < stepIndex ? ' flow-dot--done' : ''}`}
-                title={STEP_LABELS[s]}
+                title={t(`flow.step.${s}`)}
               />
             ))}
           </div>
@@ -124,7 +143,12 @@ export default function AddFlowSheet({
           />
         )}
         {step === 'sourceType' && (
-          <SourceTypeStep sourceType={sourceType} onChange={setSourceType} />
+          <SourceTypeStep
+            sourceType={sourceType}
+            onChange={setSourceType}
+            details={sourceDetails}
+            onDetailsChange={setSourceDetails}
+          />
         )}
         {step === 'quality' && (
           <QualityStep
@@ -139,6 +163,7 @@ export default function AddFlowSheet({
           <ReviewStep
             location={location}
             sourceType={sourceType}
+            sourceDetails={sourceDetails}
             readings={readings}
             hazards={hazards ?? []}
             qualityMeasures={qualityMeasures}
@@ -149,10 +174,10 @@ export default function AddFlowSheet({
 
       <div className="flow-sheet-footer">
         <button type="button" className="btn-ghost" onClick={handleBack}>
-          {isFirst ? 'Cancel' : 'Back'}
+          {isFirst ? t('flow.cancel') : t('flow.back')}
         </button>
         <button type="button" className="btn-primary" onClick={handleNext} disabled={!canAdvance}>
-          {step === 'review' ? (isEdit ? 'Save' : 'Submit to map') : 'Continue'}
+          {step === 'review' ? (isEdit ? t('flow.save') : t('flow.submit')) : t('flow.continue')}
         </button>
       </div>
     </div>

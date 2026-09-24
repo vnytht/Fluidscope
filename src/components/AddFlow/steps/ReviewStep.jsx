@@ -1,50 +1,49 @@
 import { formatCoords } from '../../../lib/mapConfig'
-import { HAZARD_TYPES } from '../../../lib/hazards'
 import { evaluateReading, PUBLIC_INFO_LINKS } from '../../../lib/qualityBands'
 import { formatReadingDisplay } from '../../../lib/readings'
-import { SOURCE_TYPE_LABELS } from '../../../lib/sourceTypeLabels'
+import { hazardName, measureName, sourceTypeName } from '../../../lib/i18n'
+import { useLanguage } from '../../../context/LanguageContext'
 import { IconAlert, IconBeaker, IconMapPin } from '../../ui/Icons'
 
-function hazardsLabel(hazards) {
-  if (hazards.length === 0) return 'None reported'
-  return hazards.map((id) => HAZARD_TYPES.find((h) => h.id === id)?.en ?? id).join(', ')
-}
+export default function ReviewStep({
+  location,
+  sourceType,
+  sourceDetails,
+  readings,
+  hazards,
+  qualityMeasures,
+  onEdit,
+}) {
+  const { locale, t } = useLanguage()
+  const sourceName = sourceTypeName(sourceType, locale)
+  const place = location ? formatCoords(location) : t('review.notSet')
+  const depthLine = sourceDetails?.depthMeters
+    ? t('review.depthValue', { n: sourceDetails.depthMeters })
+    : null
 
-function readingRows(readings, qualityMeasures) {
-  return readings.map((reading) => {
+  const rows = readings.map((reading) => {
     const display = formatReadingDisplay(reading, qualityMeasures)
     const { safe, band } = evaluateReading(reading.measureId, reading.value)
     const publicLink = PUBLIC_INFO_LINKS[reading.measureId]
     return {
       id: reading.measureId,
-      name: display.name,
+      name: measureName(reading.measureId, display.name, t),
       value: `${display.value}${display.unit ? ` ${display.unit}` : ''}`,
       safe,
       publicLink,
       band,
     }
   })
-}
-
-export default function ReviewStep({
-  location,
-  sourceType,
-  readings,
-  hazards,
-  qualityMeasures,
-  onEdit,
-}) {
-  const sourceName = SOURCE_TYPE_LABELS[sourceType]?.en ?? sourceType
-  const place = location ? formatCoords(location) : 'Not set'
-  const rows = readingRows(readings, qualityMeasures)
   const unsafeReadings = rows.filter((r) => r.safe === false)
+  const hazardsLine =
+    hazards.length === 0
+      ? t('review.noneReported')
+      : hazards.map((id) => hazardName(id, locale)).join(', ')
 
   return (
     <div className="flow-step review-step">
-      <h2>Review</h2>
-      <p className="flow-hint review-lead">
-        Check everything before it goes on the community map.
-      </p>
+      <h2>{t('review.title')}</h2>
+      <p className="flow-hint review-lead">{t('review.lead')}</p>
 
       {unsafeReadings.length > 0 && (
         <div className="review-alert" role="alert">
@@ -54,14 +53,9 @@ export default function ReviewStep({
             </span>
             <div>
               <p className="review-alert-title">
-                {unsafeReadings.length === 1
-                  ? 'This reading is outside safe limits'
-                  : 'These readings are outside safe limits'}
+                {unsafeReadings.length === 1 ? t('review.unsafeOne') : t('review.unsafeMany')}
               </p>
-              <p className="review-alert-copy">
-                Private wells in this region often exceed drinking-water guidelines. Consider
-                retesting or avoiding use for drinking, especially for infants.
-              </p>
+              <p className="review-alert-copy">{t('review.unsafeCopy')}</p>
             </div>
           </div>
           <ul className="review-alert-list">
@@ -78,7 +72,7 @@ export default function ReviewStep({
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    {reading.publicLink.label}
+                    {t(`public.${reading.id}`)}
                     <span aria-hidden="true"> ↗</span>
                   </a>
                 )}
@@ -91,30 +85,42 @@ export default function ReviewStep({
       <div className="review-rows">
         <div className="review-row">
           <div className="review-row-copy">
-            <span className="review-row-label">Location</span>
+            <span className="review-row-label">{t('review.location')}</span>
             <span className="review-row-value review-row-value--with-icon">
               <IconMapPin size={16} aria-hidden="true" />
               {place}
             </span>
           </div>
           <button type="button" className="review-row-edit" onClick={() => onEdit('location')}>
-            Edit
+            {t('review.edit')}
           </button>
         </div>
 
         <div className="review-row">
           <div className="review-row-copy">
-            <span className="review-row-label">Source</span>
+            <span className="review-row-label">{t('review.source')}</span>
             <span className="review-row-value">{sourceName}</span>
           </div>
           <button type="button" className="review-row-edit" onClick={() => onEdit('sourceType')}>
-            Edit
+            {t('review.edit')}
           </button>
         </div>
 
+        {depthLine && (
+          <div className="review-row">
+            <div className="review-row-copy">
+              <span className="review-row-label">{t('review.depth')}</span>
+              <span className="review-row-value">{depthLine}</span>
+            </div>
+            <button type="button" className="review-row-edit" onClick={() => onEdit('sourceType')}>
+              {t('review.edit')}
+            </button>
+          </div>
+        )}
+
         <div className="review-row review-row--readings">
           <div className="review-row-copy">
-            <span className="review-row-label">Readings</span>
+            <span className="review-row-label">{t('review.readings')}</span>
             <ul className="review-reading-list">
               {rows.map((reading) => (
                 <li key={reading.id} className="review-reading-item">
@@ -134,11 +140,13 @@ export default function ReviewStep({
                   </span>
                   <span className="review-reading-value">{reading.value}</span>
                   {reading.safe === true && (
-                    <span className="review-reading-badge review-reading-badge--safe">Safe</span>
+                    <span className="review-reading-badge review-reading-badge--safe">
+                      {t('review.safe')}
+                    </span>
                   )}
                   {reading.safe === false && (
                     <span className="review-reading-badge review-reading-badge--unsafe">
-                      Outside limit
+                      {t('review.outside')}
                     </span>
                   )}
                 </li>
@@ -146,17 +154,17 @@ export default function ReviewStep({
             </ul>
           </div>
           <button type="button" className="review-row-edit" onClick={() => onEdit('quality')}>
-            Edit
+            {t('review.edit')}
           </button>
         </div>
 
         <div className="review-row">
           <div className="review-row-copy">
-            <span className="review-row-label">Hazards nearby</span>
-            <span className="review-row-value">{hazardsLabel(hazards)}</span>
+            <span className="review-row-label">{t('review.hazards')}</span>
+            <span className="review-row-value">{hazardsLine}</span>
           </div>
           <button type="button" className="review-row-edit" onClick={() => onEdit('hazard')}>
-            Edit
+            {t('review.edit')}
           </button>
         </div>
       </div>

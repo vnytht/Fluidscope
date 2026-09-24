@@ -19,3 +19,7 @@
 .watershed-map .leaflet-right {
   margin-right: var(--ws-safe-right);
 }
+
+.leaflet-elevation-dem-pane {
+  pointer-events: none;
+}

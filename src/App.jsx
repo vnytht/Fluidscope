@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { AppStateProvider, useAppState } from './context/AppStateContext'
+import { LanguageProvider, useLanguage } from './context/LanguageContext'
+import LanguageToggle from './components/ui/LanguageToggle'
 import LoginScreen from './components/auth/LoginScreen'
 import WatershedMap from './components/WatershedMap'
 import LocationPicker from './components/map/LocationPicker'
@@ -8,12 +10,19 @@ import AddFlowSheet from './components/AddFlow/AddFlowSheet'
 import SourceDetailSheet from './components/source/SourceDetailSheet'
 import FilterBar from './components/FilterBar'
 import ChatPanel from './components/chat/ChatPanel'
-import CatchmentHighlight from './components/map/CatchmentHighlight'
+import HydrologyLayer from './components/map/HydrologyLayer'
+import ElevationLayer from './components/map/ElevationLayer'
+import DetailedWaterLayer from './components/map/DetailedWaterLayer'
+import BasinLayers from './components/map/BasinLayers'
+import MapLayersControl from './components/map/MapLayersControl'
 import SourceHistoryUxOptions from './pages/SourceHistoryUxOptions'
+import FlowVizOptions from './pages/FlowVizOptions'
 import { IconChat, IconPlus } from './components/ui/Icons'
+import { analyzeDownstreamImpact } from './lib/hydrology'
+import { analyzeApaNeighbours } from './lib/apaCatchments'
+import { DEFAULT_FILTERS, applyFilters } from './lib/filters'
+import { DEFAULT_MAP_LAYERS } from './lib/mapLayers'
 import './App.css'
-
-const DEFAULT_FILTERS = { sessionId: 'all', sourceType: 'all', measureId: 'all' }
 
 function useHashRoute() {
   const [hash, setHash] = useState(() => window.location.hash)
@@ -28,6 +37,7 @@ function useHashRoute() {
 // PROTOTYPE — throwaway UX-flow build. State is fake/in-memory
 // (AppStateContext), not a real backend. See src/context/AppStateContext.jsx.
 function AppGate() {
+  const { t } = useLanguage()
   const { user, samples, sessions, qualityMeasures } = useAppState()
   const [flowActive, setFlowActive] = useState(true)
   const [flowStep, setFlowStep] = useState('location')
@@ -35,31 +45,26 @@ function AppGate() {
   const [editSampleId, setEditSampleId] = useState(null)
   const [panRequest, setPanRequest] = useState(null)
   const [filters, setFilters] = useState(DEFAULT_FILTERS)
+  const [mapLayers, setMapLayers] = useState(DEFAULT_MAP_LAYERS)
   const [chatOpen, setChatOpen] = useState(false)
-  const [chatCatchmentId, setChatCatchmentId] = useState(null)
   const [selectedSampleId, setSelectedSampleId] = useState(null)
 
-  const filteredSamples = useMemo(
-    () =>
-      samples.filter((s) => {
-        if (filters.sessionId !== 'all' && s.sessionId !== filters.sessionId) return false
-        if (filters.sourceType !== 'all' && s.sourceType !== filters.sourceType) return false
-        if (
-          filters.measureId !== 'all' &&
-          !s.readings.some((r) => r.measureId === filters.measureId)
-        )
-          return false
-        return true
-      }),
-    [samples, filters],
-  )
+  const filteredSamples = useMemo(() => applyFilters(samples, filters), [samples, filters])
 
   const selectedSample = filteredSamples.find((s) => s.id === selectedSampleId) ?? null
-  const relatedSamples = selectedSample
-    ? samples.filter(
-        (s) => s.catchmentId === selectedSample.catchmentId && s.id !== selectedSample.id,
-      )
-    : []
+  const impactAnalysis = useMemo(() => {
+    if (!selectedSample) return null
+    const hydro = analyzeDownstreamImpact(selectedSample, samples)
+    const apa = analyzeApaNeighbours(selectedSample, samples)
+    return {
+      ...hydro,
+      apa,
+      sameBasinSamples: apa.neighbours,
+      localBasinSamples: apa.neighbours,
+      relationBySampleId: { ...hydro.relationBySampleId, ...apa.relationBySampleId },
+    }
+  }, [selectedSample, samples])
+  const relatedSamples = impactAnalysis?.localBasinSamples ?? []
   const editingSample = editSampleId ? samples.find((s) => s.id === editSampleId) : null
   const showSourceDetail = Boolean(selectedSample && !flowActive && !chatOpen)
 
@@ -91,7 +96,6 @@ function AppGate() {
 
   function closeChat() {
     setChatOpen(false)
-    setChatCatchmentId(null)
   }
 
   function handleFlowSaved(sampleId) {
@@ -101,12 +105,19 @@ function AppGate() {
   return (
     <>
       <WatershedMap>
+        <ElevationLayer active={mapLayers.elevation} />
+        <BasinLayers
+          showBasins={mapLayers.basins}
+          showSubBasins={mapLayers.subBasins}
+        />
+        <DetailedWaterLayer active={mapLayers.streams} />
+        <HydrologyLayer apa={flowActive ? null : impactAnalysis?.apa?.assignment} />
         <SampleMarkers
           samples={filteredSamples}
           selectedId={selectedSampleId}
           onSelect={setSelectedSampleId}
+          impactAnalysis={impactAnalysis}
         />
-        <CatchmentHighlight selectedSample={selectedSample} relatedSamples={relatedSamples} />
         <LocationPicker
           active={flowActive}
           editable={flowActive && flowStep === 'location'}
@@ -127,10 +138,15 @@ function AppGate() {
         />
       )}
 
+      {!flowActive && (
+        <MapLayersControl layers={mapLayers} onChange={setMapLayers} />
+      )}
+
       {showSourceDetail && (
         <SourceDetailSheet
           sample={selectedSample}
           relatedSamples={relatedSamples}
+          impactAnalysis={impactAnalysis}
           qualityMeasures={qualityMeasures}
           sessions={sessions}
           onClose={() => setSelectedSampleId(null)}
@@ -156,20 +172,29 @@ function AppGate() {
           type="button"
           className="fab-chat"
           onClick={() => setChatOpen(true)}
-          aria-label="Open chat"
+          aria-label={t('fab.chat')}
         >
           <IconChat />
         </button>
       )}
 
       {!flowActive && (
-        <button type="button" className="fab-add" onClick={openFlow} aria-label="Add a source">
+        <button type="button" className="fab-add" onClick={openFlow} aria-label={t('fab.add')}>
           <IconPlus />
         </button>
       )}
 
+      {showSourceDetail && (
+        <div className="hydrology-map-key" aria-label={t('mapKey.label')}>
+          <span><i className="hydrology-map-key__elev" />{t('mapKey.elevation')}</span>
+          <span><i className="hydrology-map-key__river" />{t('mapKey.rivers')}</span>
+          <span><i className="hydrology-map-key__contour" />{t('mapKey.contour')}</span>
+          <span><i className="hydrology-map-key__here" />{t('mapKey.here')}</span>
+        </div>
+      )}
+
       {chatOpen && (
-        <ChatPanel catchmentId={chatCatchmentId} onClose={closeChat} />
+        <ChatPanel onClose={closeChat} />
       )}
     </>
   )
@@ -178,15 +203,20 @@ function AppGate() {
 export default function App() {
   const hash = useHashRoute()
 
-  if (hash === '#history-ux') {
-    return <SourceHistoryUxOptions />
-  }
-
   return (
-    <AppStateProvider>
-      <div className="app-shell">
-        <AppGate />
-      </div>
-    </AppStateProvider>
+    <LanguageProvider>
+      <AppStateProvider>
+        <div className="app-shell">
+          <LanguageToggle />
+          {hash === '#history-ux' ? (
+            <SourceHistoryUxOptions />
+          ) : hash === '#flow-viz' ? (
+            <FlowVizOptions />
+          ) : (
+            <AppGate />
+          )}
+        </div>
+      </AppStateProvider>
+    </LanguageProvider>
   )
 }

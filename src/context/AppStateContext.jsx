@@ -3,10 +3,14 @@ import {
   DEFAULT_QUALITY_MEASURES,
   DEFAULT_WATERSHED_ID,
   SEED_CHAT_MESSAGES,
+  SEED_CHAT_THREADS,
   SEED_SAMPLES,
   SEED_SESSIONS,
 } from '../lib/mockData'
 import { assignCatchment } from '../lib/catchments'
+import { getHydrologyAssignment, hydrateSampleHydrology } from '../lib/hydrology'
+import { attachChatPlace } from '../lib/chatStructure'
+import { getApaAssignment } from '../lib/apaCatchments'
 
 // PROTOTYPE STATE — everything here lives in memory only. It stands in for
 // Supabase Auth + Postgres so we can test the user flow before wiring up a
@@ -20,10 +24,11 @@ function makeSessionId() {
 
 export function AppStateProvider({ children }) {
   const [user, setUser] = useState(null)
-  const [samples, setSamples] = useState(SEED_SAMPLES)
+  const [samples, setSamples] = useState(() => SEED_SAMPLES.map(hydrateSampleHydrology))
   const [sessions, setSessions] = useState(SEED_SESSIONS)
   const [currentSessionId, setCurrentSessionId] = useState(null)
   const [qualityMeasures, setQualityMeasures] = useState(DEFAULT_QUALITY_MEASURES)
+  const [chatThreads, setChatThreads] = useState(SEED_CHAT_THREADS)
   const [chatMessages, setChatMessages] = useState(SEED_CHAT_MESSAGES)
   const [activeWatershedId, setActiveWatershedId] = useState(DEFAULT_WATERSHED_ID)
 
@@ -45,18 +50,20 @@ export function AppStateProvider({ children }) {
   }
 
   function addSample(sample) {
+    const hydrology = getHydrologyAssignment(sample.position)
+    const apa = getApaAssignment(sample.position)
     setSamples((prev) => [
       ...prev,
-      {
+      attachChatPlace({
         id: `sample-${Date.now().toString(36)}`,
         sessionId: currentSessionId,
         watershedId: activeWatershedId,
-        // PROTOTYPE — stands in for real DEM-based watershed delineation.
-        // See src/lib/catchments.js.
-        catchmentId: assignCatchment(sample.position, prev),
+        catchmentId: hydrology.basinId ?? assignCatchment(sample.position),
+        hydrology,
+        apa,
         createdAt: new Date().toISOString(),
         ...sample,
-      },
+      }),
     ])
   }
 
@@ -66,22 +73,49 @@ export function AppStateProvider({ children }) {
         if (s.id !== id) return s
         const next = { ...s, ...patch }
         if (patch.position) {
-          next.catchmentId = assignCatchment(patch.position, prev.filter((x) => x.id !== id))
+          next.hydrology = getHydrologyAssignment(patch.position)
+          next.catchmentId = next.hydrology.basinId ?? assignCatchment(patch.position)
+          next.apa = getApaAssignment(patch.position)
+          Object.assign(next, attachChatPlace(next))
         }
         return next
       }),
     )
   }
 
-  function sendMessage(watershedId, text, { catchmentId = null } = {}) {
+  function createThread({ basinId, townId, subject, title, placeId, placeLabel, text }) {
+    const now = new Date().toISOString()
+    const thread = {
+      id: `thread-${Date.now().toString(36)}`,
+      basinId,
+      townId,
+      subject,
+      title: title?.trim() || '',
+      placeId: placeId || null,
+      placeLabel: placeLabel || null,
+      author: user?.email ?? 'You',
+      createdAt: now,
+    }
+    const message = {
+      id: `msg-${Date.now().toString(36)}`,
+      threadId: thread.id,
+      author: thread.author,
+      text: text.trim(),
+      createdAt: now,
+    }
+    setChatThreads((prev) => [thread, ...prev])
+    setChatMessages((prev) => [...prev, message])
+    return thread
+  }
+
+  function replyToThread(threadId, text) {
     setChatMessages((prev) => [
       ...prev,
       {
         id: `msg-${Date.now().toString(36)}`,
-        watershedId,
-        catchmentId,
+        threadId,
         author: user?.email ?? 'You',
-        text,
+        text: text.trim(),
         createdAt: new Date().toISOString(),
       },
     ])
@@ -99,12 +133,14 @@ export function AppStateProvider({ children }) {
       addQualityMeasure,
       addSample,
       updateSample,
+      chatThreads,
       chatMessages,
-      sendMessage,
+      createThread,
+      replyToThread,
       activeWatershedId,
       setActiveWatershedId,
     }),
-    [user, samples, sessions, currentSessionId, qualityMeasures, chatMessages, activeWatershedId],
+    [user, samples, sessions, currentSessionId, qualityMeasures, chatThreads, chatMessages, activeWatershedId],
   )
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>

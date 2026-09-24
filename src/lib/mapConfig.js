@@ -23,11 +23,16 @@ export const BASEMAPS = {
   },
   topo: {
     label: 'Terrain',
-    url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
     attribution:
-      'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, ' +
-      '<a href="https://opentopomap.org">OpenTopoMap</a> (CC-BY-SA)',
-    maxZoom: 17,
+      'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, USGS, FAO, NPS',
+    maxZoom: 16,
+  },
+  hillshade: {
+    label: 'Hillshade',
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}',
+    attribution: 'Tiles &copy; Esri',
+    maxZoom: 13,
   },
 }
 

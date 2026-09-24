@@ -161,6 +161,54 @@
   gap: 8px;
 }
 
+.source-extras {
+  margin-top: 22px;
+  padding-top: 16px;
+  border-top: 1px solid var(--ws-line);
+}
+
+.source-extras-kicker {
+  margin: 0 0 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ws-accent);
+}
+
+.source-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 12px 0;
+  font-size: 0.82rem;
+  font-weight: 650;
+  color: var(--ws-ink-soft);
+}
+
+.source-field input {
+  padding: 11px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--ws-line);
+  background: var(--ws-surface-alt);
+  font: inherit;
+  font-weight: 500;
+  color: var(--ws-ink);
+}
+
+.source-fieldset {
+  margin: 14px 0;
+  padding: 0;
+  border: none;
+}
+
+.source-fieldset legend {
+  margin-bottom: 8px;
+  font-size: 0.82rem;
+  font-weight: 650;
+  color: var(--ws-ink-soft);
+}
+
 .chip {
   display: inline-flex;
   align-items: center;

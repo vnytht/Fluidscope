@@ -82,16 +82,16 @@ const EXTRA_SESSIONS = [
   { id: 'session-mock-2', label: 'Dry spell — 3 May 2026' },
 ]
 
-function formatDateLabel(iso) {
-  return new Date(iso).toLocaleDateString('en-GB', {
+function formatDateLabel(iso, dateLocale = 'en-GB') {
+  return new Date(iso).toLocaleDateString(dateLocale, {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
   })
 }
 
-function formatDateShort(iso) {
-  return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+function formatDateShort(iso, dateLocale = 'en-GB') {
+  return new Date(iso).toLocaleDateString(dateLocale, { day: 'numeric', month: 'short' })
 }
 
 function sessionLabel(sessionId, sessions) {
@@ -99,19 +99,19 @@ function sessionLabel(sessionId, sessions) {
   return all.find((s) => s.id === sessionId)?.label ?? 'Field session'
 }
 
-function buildEntry(raw, sessions) {
+function buildEntry(raw, sessions, dateLocale) {
   return {
     ...raw,
-    dateLabel: formatDateLabel(raw.testedAt),
-    dateShort: formatDateShort(raw.testedAt),
+    dateLabel: formatDateLabel(raw.testedAt, dateLocale),
+    dateShort: formatDateShort(raw.testedAt, dateLocale),
     sessionName: sessionLabel(raw.sessionId, sessions),
   }
 }
 
-export function buildSourceTimeline(sample, sessions = []) {
+export function buildSourceTimeline(sample, sessions = [], dateLocale = 'en-GB') {
   const preset = MOCK_HISTORY_BY_SAMPLE[sample.id]
   if (preset) {
-    return preset.map((entry) => buildEntry(entry, sessions)).sort(
+    return preset.map((entry) => buildEntry(entry, sessions, dateLocale)).sort(
       (a, b) => new Date(b.testedAt) - new Date(a.testedAt),
     )
   }
@@ -128,6 +128,7 @@ export function buildSourceTimeline(sample, sessions = []) {
         isCurrent: true,
       },
       sessions,
+      dateLocale,
     ),
   ]
 }
