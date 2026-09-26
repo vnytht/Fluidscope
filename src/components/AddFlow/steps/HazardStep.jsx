@@ -47,7 +47,6 @@ export default function HazardStep({ value, onChange }) {
 
       <div className="hazard-group-list">
         {(['active', 'passive']).map((activity) => {
-          const group = HAZARD_ACTIVITY[activity]
           const types = hazardsByActivity(activity)
           const isExpanded = expandedGroup === activity
           const summary = groupSummary(activity)

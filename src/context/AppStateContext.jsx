@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useMemo, useState } from 'react'
 import {
   DEFAULT_QUALITY_MEASURES,
   DEFAULT_WATERSHED_ID,
@@ -9,7 +9,7 @@ import {
 } from '../lib/mockData'
 import { assignCatchment } from '../lib/catchments'
 import { getHydrologyAssignment, hydrateSampleHydrology } from '../lib/hydrology'
-import { attachChatPlace } from '../lib/chatStructure'
+import { attachChatPlace, communityThreadId } from '../lib/chatStructure'
 import { getApaAssignment } from '../lib/apaCatchments'
 
 // PROTOTYPE STATE — everything here lives in memory only. It stands in for
@@ -87,6 +87,7 @@ export function AppStateProvider({ children }) {
     const now = new Date().toISOString()
     const thread = {
       id: `thread-${Date.now().toString(36)}`,
+      kind: 'topic',
       basinId,
       townId,
       subject,
@@ -107,6 +108,29 @@ export function AppStateProvider({ children }) {
     setChatMessages((prev) => [...prev, message])
     return thread
   }
+
+  const ensureCommunityThread = useCallback((townId) => {
+    const id = communityThreadId(townId)
+    setChatThreads((prev) => {
+      if (prev.some((thread) => thread.id === id)) return prev
+      return [
+        ...prev,
+        {
+          id,
+          kind: 'community',
+          basinId: 'lima',
+          townId,
+          subject: 'status',
+          title: '',
+          placeId: null,
+          placeLabel: null,
+          author: 'WaterScope',
+          createdAt: new Date().toISOString(),
+        },
+      ]
+    })
+    return id
+  }, [])
 
   function replyToThread(threadId, text) {
     setChatMessages((prev) => [
@@ -136,11 +160,12 @@ export function AppStateProvider({ children }) {
       chatThreads,
       chatMessages,
       createThread,
+      ensureCommunityThread,
       replyToThread,
       activeWatershedId,
       setActiveWatershedId,
     }),
-    [user, samples, sessions, currentSessionId, qualityMeasures, chatThreads, chatMessages, activeWatershedId],
+    [user, samples, sessions, currentSessionId, qualityMeasures, chatThreads, chatMessages, activeWatershedId, ensureCommunityThread],
   )
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>

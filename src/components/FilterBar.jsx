@@ -4,10 +4,12 @@ import { SOURCE_TYPES } from '../lib/mockData'
 import { HAZARD_TYPES } from '../lib/hazards'
 import {
   SEASONS,
+  asFilterList,
   clearFilterField,
   countActiveFilters,
   emptyFilters,
   isDefaultFilters,
+  toggleFilterValue,
 } from '../lib/filters'
 import { hazardName, measureName, sourceTypeName } from '../lib/i18n'
 import { useLanguage } from '../context/LanguageContext'
@@ -34,43 +36,72 @@ function formatChipDate(value, dateLocale) {
   return date.toLocaleDateString(dateLocale, { day: 'numeric', month: 'short' })
 }
 
+function listSummary(list, emptyLabel, formatOne, t) {
+  if (!list.length) return emptyLabel
+  if (list.length === 1) return formatOne(list[0])
+  return t('filter.nSelected', { count: list.length })
+}
+
 function activeChips(filters, { locale, dateLocale, t, qualityMeasures }) {
   const chips = []
 
-  if (filters.sourceType !== 'all') {
-    chips.push({ key: 'sourceType', label: sourceTypeName(filters.sourceType, locale) })
-  }
-
-  if (filters.contamination === 'unsafe') {
-    chips.push({ key: 'contamination', label: t('filter.contamination.unsafe') })
-  } else if (filters.contamination !== 'all') {
-    const measure = qualityMeasures.find((item) => item.id === filters.contamination)
+  asFilterList(filters.sourceType).forEach((type) => {
     chips.push({
-      key: 'contamination',
-      label: measureName(filters.contamination, measure?.name ?? filters.contamination, t),
+      key: `sourceType:${type}`,
+      field: 'sourceType',
+      value: type,
+      label: sourceTypeName(type, locale),
     })
-  }
+  })
 
-  if (filters.hazards === 'any') {
-    chips.push({ key: 'hazards', label: t('filter.hazards.any') })
-  } else if (filters.hazards === 'none') {
-    chips.push({ key: 'hazards', label: t('filter.hazards.none') })
-  } else if (filters.hazards !== 'all') {
-    chips.push({ key: 'hazards', label: hazardName(filters.hazards, locale) })
-  }
+  asFilterList(filters.contamination).forEach((item) => {
+    const measure = qualityMeasures.find((entry) => entry.id === item)
+    chips.push({
+      key: `contamination:${item}`,
+      field: 'contamination',
+      value: item,
+      label:
+        item === 'unsafe'
+          ? t('filter.contamination.unsafe')
+          : measureName(item, measure?.name ?? item, t),
+    })
+  })
 
-  if (filters.season !== 'all') {
-    chips.push({ key: 'when', label: t(`filter.season.${filters.season}`) })
-  } else if (filters.dateFrom || filters.dateTo) {
+  asFilterList(filters.hazards).forEach((item) => {
+    chips.push({
+      key: `hazards:${item}`,
+      field: 'hazards',
+      value: item,
+      label:
+        item === 'any'
+          ? t('filter.hazards.any')
+          : item === 'none'
+            ? t('filter.hazards.none')
+            : hazardName(item, locale),
+    })
+  })
+
+  asFilterList(filters.season).forEach((season) => {
+    chips.push({
+      key: `season:${season}`,
+      field: 'season',
+      value: season,
+      label: t(`filter.season.${season}`),
+    })
+  })
+
+  if (filters.dateFrom || filters.dateTo) {
     const from = formatChipDate(filters.dateFrom, dateLocale)
     const to = formatChipDate(filters.dateTo, dateLocale)
     chips.push({
       key: 'when',
+      field: 'when',
       label: from && to ? `${from} – ${to}` : from || to,
     })
   } else if (filters.timeFrom || filters.timeTo) {
     chips.push({
       key: 'when',
+      field: 'when',
       label: [filters.timeFrom, filters.timeTo].filter(Boolean).join(' – '),
     })
   }
@@ -94,6 +125,11 @@ export default function FilterBar({
   const activeCount = countActiveFilters(filters)
   const anyFiltered = !isDefaultFilters(filters)
   const chips = activeChips(filters, { locale, dateLocale, t, qualityMeasures })
+  const sourceTypes = asFilterList(filters.sourceType)
+  const contaminations = asFilterList(filters.contamination)
+  const hazardFilters = asFilterList(filters.hazards)
+  const seasons = asFilterList(filters.season)
+  const hazardTypeIds = HAZARD_TYPES.map((hazard) => hazard.id)
 
   function placePanel() {
     const rect = buttonRef.current?.getBoundingClientRect()
@@ -149,27 +185,35 @@ export default function FilterBar({
 
   function setField(key, value) {
     const next = { ...filters, view: 'custom', [key]: value }
-    if (key === 'season' && value !== 'all') {
+    if (key === 'season' && asFilterList(value).length) {
       next.dateFrom = ''
       next.dateTo = ''
       next.timeFrom = ''
       next.timeTo = ''
     }
     if ((key === 'dateFrom' || key === 'dateTo' || key === 'timeFrom' || key === 'timeTo') && value) {
-      next.season = 'all'
+      next.season = []
     }
     onChange(next)
   }
 
-  function pick(key, value) {
-    setField(key, filters[key] === value ? 'all' : value)
+  function pick(key, value, exclusive = []) {
+    setField(key, toggleFilterValue(filters[key], value, exclusive))
   }
 
-  function removeChip(key) {
-    onChange(clearFilterField(filters, key))
+  function removeChip(chip) {
+    if (chip.field && chip.value != null) {
+      onChange({
+        ...filters,
+        [chip.field]: asFilterList(filters[chip.field]).filter((item) => item !== chip.value),
+      })
+      return
+    }
+    onChange(clearFilterField(filters, chip.field || chip.key))
   }
 
-  function reopenForChip(key) {
+  function reopenForChip(chip) {
+    const key = chip.field || chip.key
     const section =
       key === 'sourceType' ? 'source' : key === 'contamination' ? 'contamination' : key === 'hazards' ? 'hazards' : 'when'
     setOpenSection(section)
@@ -239,23 +283,21 @@ export default function FilterBar({
                   >
                     <span>{t('filter.sourceType')}</span>
                     <span className="filter-accordion-value">
-                      {filters.sourceType === 'all'
-                        ? t('filter.all')
-                        : sourceTypeName(filters.sourceType, locale)}
+                      {listSummary(sourceTypes, t('filter.all'), (type) => sourceTypeName(type, locale), t)}
                     </span>
                   </button>
                   {openSection === 'source' && (
                     <div className="filter-chip-row">
                       <OptionChip
-                        selected={filters.sourceType === 'all'}
-                        onClick={() => setField('sourceType', 'all')}
+                        selected={sourceTypes.length === 0}
+                        onClick={() => setField('sourceType', [])}
                       >
                         {t('filter.all')}
                       </OptionChip>
                       {SOURCE_TYPES.map((type) => (
                         <OptionChip
                           key={type}
-                          selected={filters.sourceType === type}
+                          selected={sourceTypes.includes(type)}
                           onClick={() => pick('sourceType', type)}
                         >
                           {sourceTypeName(type, locale)}
@@ -274,32 +316,36 @@ export default function FilterBar({
                   >
                     <span>{t('filter.contamination')}</span>
                     <span className="filter-accordion-value">
-                      {filters.contamination === 'all'
-                        ? t('filter.any')
-                        : filters.contamination === 'unsafe'
-                          ? t('filter.contamination.unsafe')
-                          : measureName(filters.contamination, filters.contamination, t)}
+                      {listSummary(
+                        contaminations,
+                        t('filter.any'),
+                        (item) =>
+                          item === 'unsafe'
+                            ? t('filter.contamination.unsafe')
+                            : measureName(item, item, t),
+                        t,
+                      )}
                     </span>
                   </button>
                   {openSection === 'contamination' && (
                     <div className="filter-chip-row">
                       <OptionChip
-                        selected={filters.contamination === 'all'}
-                        onClick={() => setField('contamination', 'all')}
+                        selected={contaminations.length === 0}
+                        onClick={() => setField('contamination', [])}
                       >
                         {t('filter.any')}
                       </OptionChip>
                       {qualityMeasures.map((measure) => (
                         <OptionChip
                           key={measure.id}
-                          selected={filters.contamination === measure.id}
+                          selected={contaminations.includes(measure.id)}
                           onClick={() => pick('contamination', measure.id)}
                         >
                           {measureName(measure.id, measure.name, t)}
                         </OptionChip>
                       ))}
                       <OptionChip
-                        selected={filters.contamination === 'unsafe'}
+                        selected={contaminations.includes('unsafe')}
                         onClick={() => pick('contamination', 'unsafe')}
                       >
                         {t('filter.contamination.unsafe')}
@@ -317,40 +363,44 @@ export default function FilterBar({
                   >
                     <span>{t('filter.hazards')}</span>
                     <span className="filter-accordion-value">
-                      {filters.hazards === 'all'
-                        ? t('filter.any')
-                        : filters.hazards === 'any'
-                          ? t('filter.hazards.any')
-                          : filters.hazards === 'none'
-                            ? t('filter.hazards.none')
-                            : hazardName(filters.hazards, locale)}
+                      {listSummary(
+                        hazardFilters,
+                        t('filter.any'),
+                        (item) =>
+                          item === 'any'
+                            ? t('filter.hazards.any')
+                            : item === 'none'
+                              ? t('filter.hazards.none')
+                              : hazardName(item, locale),
+                        t,
+                      )}
                     </span>
                   </button>
                   {openSection === 'hazards' && (
                     <div className="filter-chip-row">
                       <OptionChip
-                        selected={filters.hazards === 'all'}
-                        onClick={() => setField('hazards', 'all')}
+                        selected={hazardFilters.length === 0}
+                        onClick={() => setField('hazards', [])}
                       >
                         {t('filter.any')}
                       </OptionChip>
                       <OptionChip
-                        selected={filters.hazards === 'any'}
-                        onClick={() => pick('hazards', 'any')}
+                        selected={hazardFilters.includes('any')}
+                        onClick={() => pick('hazards', 'any', [...hazardTypeIds, 'none'])}
                       >
                         {t('filter.hazards.any')}
                       </OptionChip>
                       <OptionChip
-                        selected={filters.hazards === 'none'}
-                        onClick={() => pick('hazards', 'none')}
+                        selected={hazardFilters.includes('none')}
+                        onClick={() => pick('hazards', 'none', [...hazardTypeIds, 'any'])}
                       >
                         {t('filter.hazards.none')}
                       </OptionChip>
                       {HAZARD_TYPES.map((hazard) => (
                         <OptionChip
                           key={hazard.id}
-                          selected={filters.hazards === hazard.id}
-                          onClick={() => pick('hazards', hazard.id)}
+                          selected={hazardFilters.includes(hazard.id)}
+                          onClick={() => pick('hazards', hazard.id, ['any', 'none'])}
                         >
                           {hazardName(hazard.id, locale)}
                         </OptionChip>
@@ -368,11 +418,12 @@ export default function FilterBar({
                   >
                     <span>{t('filter.when')}</span>
                     <span className="filter-accordion-value">
-                      {filters.season !== 'all'
-                        ? t(`filter.season.${filters.season}`)
-                        : filters.dateFrom || filters.dateTo
-                          ? t('filter.dateTime')
-                          : t('filter.all')}
+                      {listSummary(
+                        seasons,
+                        filters.dateFrom || filters.dateTo ? t('filter.dateTime') : t('filter.all'),
+                        (season) => t(`filter.season.${season}`),
+                        t,
+                      )}
                     </span>
                   </button>
                   {openSection === 'when' && (
@@ -410,17 +461,18 @@ export default function FilterBar({
                         </label>
                       </div>
                       <p className="filter-group-label">{t('filter.season')}</p>
+                      <p className="filter-season-hint">{t('filter.seasonHint')}</p>
                       <div className="filter-chip-row">
                         <OptionChip
-                          selected={filters.season === 'all'}
-                          onClick={() => setField('season', 'all')}
+                          selected={seasons.length === 0}
+                          onClick={() => setField('season', [])}
                         >
                           {t('filter.all')}
                         </OptionChip>
                         {SEASONS.map((season) => (
                           <OptionChip
                             key={season}
-                            selected={filters.season === season}
+                            selected={seasons.includes(season)}
                             onClick={() => pick('season', season)}
                           >
                             {t(`filter.season.${season}`)}
@@ -444,7 +496,7 @@ export default function FilterBar({
             key={chip.key}
             type="button"
             className="filter-chip filter-chip--token"
-            onClick={() => reopenForChip(chip.key)}
+            onClick={() => reopenForChip(chip)}
           >
             {chip.label}
             <span
@@ -454,13 +506,13 @@ export default function FilterBar({
               aria-label={t('filter.remove', { label: chip.label })}
               onClick={(e) => {
                 e.stopPropagation()
-                removeChip(chip.key)
+                removeChip(chip)
               }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault()
                   e.stopPropagation()
-                  removeChip(chip.key)
+                  removeChip(chip)
                 }
               }}
             >

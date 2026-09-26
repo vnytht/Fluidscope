@@ -73,16 +73,20 @@ export function placeLabelForSample(sample, fallback) {
   return sample.localName || sample.sourceType || fallback
 }
 
-export function samplesForChatPlace(samples, basinId, townId) {
-  return samples.filter((sample) => {
-    if (sample.basinChatId !== basinId) return false
-    if (townId === WHOLE_BASIN_TOWN_ID) return true
-    return sample.townId === townId
-  })
+export function samplesForChatPlace(samples, townId) {
+  return samples.filter((sample) => sample.townId === townId)
 }
 
-export function threadsInScope(threads, basinId, townId) {
-  return threads.filter((thread) => thread.basinId === basinId && thread.townId === townId)
+export function communityThreadId(townId) {
+  return `community-${townId}`
+}
+
+export function isCommunityThread(thread) {
+  return thread?.kind === 'community' || thread?.id === communityThreadId(thread?.townId)
+}
+
+export function threadsInScope(threads, townId) {
+  return threads.filter((thread) => thread.townId === townId && !isCommunityThread(thread))
 }
 
 export function lastMessageForThread(messages, threadId) {
@@ -97,10 +101,6 @@ export function messageCountForThread(messages, threadId) {
   return messages.filter((message) => message.threadId === threadId).length
 }
 
-export function townThreadCount(threads, basinId, townId) {
-  return threads.filter((thread) => thread.basinId === basinId && thread.townId === townId).length
-}
-
-export function basinThreadCount(threads, basinId) {
-  return threads.filter((thread) => thread.basinId === basinId).length
+export function townThreadCount(threads, townId) {
+  return threads.filter((thread) => thread.townId === townId && !isCommunityThread(thread)).length
 }

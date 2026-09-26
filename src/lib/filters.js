@@ -3,10 +3,10 @@ import { sampleHasHazard } from './hazards'
 
 export const DEFAULT_FILTERS = {
   view: 'all',
-  sourceType: 'all',
-  contamination: 'all',
-  hazards: 'all',
-  season: 'all',
+  sourceType: [],
+  contamination: [],
+  hazards: [],
+  season: [],
   dateFrom: '',
   dateTo: '',
   timeFrom: '',
@@ -16,6 +16,31 @@ export const DEFAULT_FILTERS = {
 
 export const SEASONS = ['winter', 'spring', 'summer', 'autumn']
 
+// Meteorological seasons for mainland Portugal / Viana do Castelo (IPMA).
+export const VIANA_SEASON_MONTHS = {
+  winter: [11, 0, 1],
+  spring: [2, 3, 4],
+  summer: [5, 6, 7],
+  autumn: [8, 9, 10],
+}
+
+const LIST_KEYS = ['sourceType', 'contamination', 'hazards', 'season']
+
+export function asFilterList(value) {
+  if (value == null || value === 'all' || value === '') return []
+  return Array.isArray(value) ? value.filter(Boolean) : [value]
+}
+
+export function isFilterActive(value) {
+  return asFilterList(value).length > 0
+}
+
+export function toggleFilterValue(list, value, exclusive = []) {
+  const current = asFilterList(list)
+  if (current.includes(value)) return current.filter((item) => item !== value)
+  return [...current.filter((item) => !exclusive.includes(item)), value]
+}
+
 export function emptyFilters(overrides = {}) {
   return { ...DEFAULT_FILTERS, ...overrides }
 }
@@ -24,21 +49,21 @@ export function clearFilterField(filters, key) {
   if (key === 'when') {
     return emptyFilters({
       ...filters,
-      season: 'all',
+      season: [],
       dateFrom: '',
       dateTo: '',
       timeFrom: '',
       timeTo: '',
     })
   }
+  if (LIST_KEYS.includes(key)) return emptyFilters({ ...filters, [key]: [] })
   return emptyFilters({ ...filters, [key]: 'all' })
 }
 
 export function monthToSeason(monthIndex) {
-  if (monthIndex === 11 || monthIndex <= 1) return 'winter'
-  if (monthIndex <= 4) return 'spring'
-  if (monthIndex <= 7) return 'summer'
-  return 'autumn'
+  return (
+    SEASONS.find((season) => VIANA_SEASON_MONTHS[season].includes(monthIndex)) ?? 'autumn'
+  )
 }
 
 function sampleDate(sample) {
@@ -83,36 +108,53 @@ function matchesDateTime(date, filters) {
   return true
 }
 
-function hasUnsafeReading(sample) {
-  return (sample.readings ?? []).some((reading) => evaluateReading(reading.measureId, reading.value).safe === false)
+function readingIsUnsafe(reading) {
+  return evaluateReading(reading.measureId, reading.value).safe === false
+}
+
+function hasUnsafeReading(sample, measureIds = null) {
+  return (sample.readings ?? []).some((reading) => {
+    if (measureIds && !measureIds.includes(reading.measureId)) return false
+    return readingIsUnsafe(reading)
+  })
 }
 
 function matchesContamination(sample, contamination) {
-  if (contamination === 'all') return true
+  const selected = asFilterList(contamination)
+  if (!selected.length) return true
+
+  const wantUnsafe = selected.includes('unsafe')
+  const measures = selected.filter((item) => item !== 'unsafe')
   const readings = sample.readings ?? []
-  if (contamination === 'unsafe') return hasUnsafeReading(sample)
-  if (contamination === 'nitrate') return readings.some((r) => r.measureId === 'nitrate')
-  if (contamination === 'ph') return readings.some((r) => r.measureId === 'ph')
-  return true
+
+  if (wantUnsafe && measures.length) return hasUnsafeReading(sample, measures)
+  if (wantUnsafe) return hasUnsafeReading(sample)
+  return measures.some((id) => readings.some((reading) => reading.measureId === id))
 }
 
 function matchesHazards(sample, hazards) {
-  if (hazards === 'all') return true
+  const selected = asFilterList(hazards)
+  if (!selected.length) return true
+
   const has = sampleHasHazard(sample)
-  if (hazards === 'any') return has
-  if (hazards === 'none') return !has
-  return (sample.hazards ?? []).includes(hazards)
+  if (selected.includes('none')) return !has
+  if (selected.includes('any')) return has
+  return selected.some((id) => (sample.hazards ?? []).includes(id))
 }
 
 export function sampleMatchesFilters(sample, filters) {
-  if (filters.sourceType !== 'all' && sample.sourceType !== filters.sourceType) return false
-  if (filters.sessionId !== 'all' && sample.sessionId !== filters.sessionId) return false
+  const sourceTypes = asFilterList(filters.sourceType)
+  if (sourceTypes.length && !sourceTypes.includes(sample.sourceType)) return false
+  if (filters.sessionId !== 'all' && filters.sessionId && sample.sessionId !== filters.sessionId) {
+    return false
+  }
   if (!matchesContamination(sample, filters.contamination)) return false
   if (!matchesHazards(sample, filters.hazards)) return false
 
   const date = sampleDate(sample)
-  if (filters.season !== 'all') {
-    if (!date || monthToSeason(date.getMonth()) !== filters.season) return false
+  const seasons = asFilterList(filters.season)
+  if (seasons.length) {
+    if (!date || !seasons.includes(monthToSeason(date.getMonth()))) return false
   }
   if (!matchesDateTime(date, filters)) return false
   return true
@@ -124,13 +166,13 @@ export function applyFilters(samples, filters) {
 
 export function countActiveFilters(filters) {
   let count = 0
-  if (filters.sourceType !== 'all') count += 1
-  if (filters.contamination !== 'all') count += 1
-  if (filters.hazards !== 'all') count += 1
-  if (filters.season !== 'all') count += 1
+  count += asFilterList(filters.sourceType).length
+  count += asFilterList(filters.contamination).length
+  count += asFilterList(filters.hazards).length
+  count += asFilterList(filters.season).length
   if (filters.dateFrom || filters.dateTo) count += 1
   if (filters.timeFrom || filters.timeTo) count += 1
-  if (filters.sessionId !== 'all') count += 1
+  if (filters.sessionId && filters.sessionId !== 'all') count += 1
   return count
 }
 

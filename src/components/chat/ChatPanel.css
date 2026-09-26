@@ -181,6 +181,24 @@
   border-top: 1px solid var(--ws-line);
 }
 
+.chat-list-footer--community {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.chat-new-thread--secondary {
+  background: transparent;
+  color: var(--ws-accent);
+  border: 1px solid var(--ws-accent);
+}
+
+.chat-input-row--inline {
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
 .chat-new-thread {
   width: 100%;
   min-height: 44px;
@@ -190,7 +208,7 @@
   gap: 8px;
   border: none;
   border-radius: var(--ws-radius-pill);
-  background: var(--ws-ink);
+  background: var(--ws-accent);
   color: white;
   font-weight: 700;
 }

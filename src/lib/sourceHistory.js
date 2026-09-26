@@ -1,4 +1,4 @@
-import { evaluateReading } from './qualityBands'
+import { evaluateReading, getMeasureScale } from './qualityBands'
 
 /** Hypothetical past tests for prototype demos — keyed by sample id. */
 const MOCK_HISTORY_BY_SAMPLE = {
@@ -140,7 +140,7 @@ export function formatReadingRows(readings, qualityMeasures) {
     const { safe } = evaluateReading(reading.measureId, reading.value)
     const scale = measure?.id
     const unit =
-      reading.measureId === 'nitrate' ? 'mg/L' : reading.measureId === 'ph' ? '' : ''
+      getMeasureScale(reading.measureId)?.unit ?? ''
     return {
       id: reading.measureId,
       name,
@@ -159,7 +159,8 @@ export function lastRecordingSummary(timeline) {
   const last = timeline[0]
   if (!last) return null
   const preview = formatReadingRows(last.readings, [
-    { id: 'nitrate', name: 'Nitrate' },
+    { id: 'nitrate', name: 'Nitrate as NO₃-N' },
+    { id: 'nitrite', name: 'Nitrite as NO₂-N' },
     { id: 'ph', name: 'pH' },
   ])
     .map((r) => `${r.name} ${r.value}`)

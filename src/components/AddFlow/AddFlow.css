@@ -86,6 +86,7 @@
 .flow-sheet-body {
   padding: 4px 20px 16px;
   overflow-y: auto;
+  min-height: 220px;
 }
 
 .flow-step h2 {
@@ -501,6 +502,27 @@
 
 .scale-ruler-track:active .scale-ruler-thumb {
   box-shadow: 0 2px 8px rgba(13, 59, 79, 0.28);
+}
+
+.scale-ruler-tick {
+  position: absolute;
+  top: 50%;
+  width: 1px;
+  height: 8px;
+  background: color-mix(in srgb, var(--ws-ink) 28%, transparent);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.safety-scale-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 2px 4px 0;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: var(--ws-ink-soft);
 }
 
 .safety-scale-prompt {

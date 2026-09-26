@@ -4,8 +4,10 @@ import { sampleHasHazard } from '../../lib/hazards'
 import { hazardName, measureName, sourceTypeName } from '../../lib/i18n'
 import { useLanguage } from '../../context/LanguageContext'
 import { formatReadingDisplay } from '../../lib/readings'
+import { evaluateReading } from '../../lib/qualityBands'
 import { getCatchment, shortCatchmentName } from '../../lib/catchments'
 import { APA_BASIN_COLORS } from '../../lib/apaCatchments'
+import { getChatTown } from '../../lib/chatStructure'
 import ChatPanel from '../chat/ChatPanel'
 import SourceHistoryPanel from './SourceHistoryPanel'
 import {
@@ -41,6 +43,7 @@ export default function SourceDetailSheet({
   const apaTitle = apaLooksCoded && apa.subBasin ? apa.subBasin : apa?.name
   const communityLabel = apaTitle || apa?.name || shortCatchmentName(catchment.name)
   const communityColor = APA_BASIN_COLORS[apa?.basinName] ?? catchment.color
+  const townName = getChatTown(sample.townId)?.name || communityLabel
   const sourceCountLabel =
     communitySources.length === 1
       ? t('detail.linkedOne')
@@ -56,7 +59,6 @@ export default function SourceDetailSheet({
       <div className="flow-sheet source-detail-sheet source-detail-sheet--chat">
         <ChatPanel
           variant="embedded"
-          startBasinId={sample.basinChatId}
           startTownId={sample.townId}
           taggedPlace={{
             id: sample.id,
@@ -174,6 +176,8 @@ export default function SourceDetailSheet({
               )}
               {sample.readings.map((reading) => {
                 const { name, value, unit } = formatReadingDisplay(reading, qualityMeasures)
+                const { safe } = evaluateReading(reading.measureId, reading.value)
+                const notSafe = safe === false
                 return (
                   <div key={reading.measureId} className="source-detail-row">
                     <span className="source-detail-row-icon" aria-hidden="true">
@@ -186,6 +190,11 @@ export default function SourceDetailSheet({
                         {unit ? ` ${unit}` : ''}
                       </span>
                     </div>
+                    {safe != null && (
+                      <span className={`ws-status ${notSafe ? 'ws-status--not' : 'ws-status--safe'}`}>
+                        {notSafe ? t('status.notSafe') : t('status.safe')}
+                      </span>
+                    )}
                   </div>
                 )
               })}
@@ -232,14 +241,14 @@ export default function SourceDetailSheet({
               className="source-detail-community-row"
               style={{ '--community-color': communityColor }}
               onClick={() => setChatOpen(true)}
-              aria-label={t('detail.openChat', { name: communityLabel })}
+              aria-label={t('detail.openChat', { name: townName })}
             >
               <span className="source-detail-community-icon" aria-hidden="true">
                 <IconChat size={20} />
               </span>
               <span className="source-detail-community-copy">
                 <span className="source-detail-community-kicker">{t('detail.chat')}</span>
-                <span className="source-detail-community-name">{communityLabel}</span>
+                <span className="source-detail-community-name">{townName}</span>
                 <span className="source-detail-community-meta">{sourceCountLabel}</span>
               </span>
               <span className="source-detail-community-go">

@@ -20,7 +20,6 @@
   position: absolute;
   bottom: calc(20px + var(--ws-safe-bottom));
   z-index: 900;
-  width: 52px;
   height: 52px;
   border-radius: var(--ws-radius-pill);
   border: none;
@@ -70,7 +69,7 @@
   border-radius: 2px;
   background: linear-gradient(90deg, #d9f4fa, #7ec8a0, #f3ea7a);
 }
-.hydrology-map-key__river { border-top: 2px solid #1a7a92; }
+.hydrology-map-key__river { border-top: 3px solid #4F86C6; }
 .hydrology-map-key__contour {
   height: 0 !important;
   border-top: 1.5px solid #5a7a88;
@@ -113,14 +112,20 @@
 }
 
 .fab-add {
+  width: 52px;
   right: calc(16px + var(--ws-safe-right));
   background: var(--ws-accent);
 }
 
 .fab-chat {
   left: calc(16px + var(--ws-safe-left));
+  gap: 8px;
+  padding: 0 16px 0 14px;
   background: var(--ws-surface);
   color: var(--ws-ink);
   border: 1px solid var(--ws-line);
   box-shadow: var(--ws-shadow-sm);
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }

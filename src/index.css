@@ -1,28 +1,41 @@
 :root {
-  /* Palette — calm water / civic map app */
-  --ws-ink: #0f2d3a;
-  --ws-ink-soft: #5c7280;
-  --ws-ink-muted: #94a3ae;
+  /* WaterScope design direction — papel, granito, azulejo */
+  --ws-papel: #f4efe4;
+  --ws-ink: #1e2a30;
+  --ws-ink-soft: #5e5f59;
+  --ws-ink-muted: #5e5f59;
   --ws-surface: #ffffff;
-  --ws-surface-alt: #f4f7f8;
+  --ws-surface-alt: #f4efe4;
   --ws-surface-raised: #ffffff;
-  --ws-line: #e3eaed;
-  --ws-line-strong: #cfd9de;
-  --ws-accent: #168396;
-  --ws-accent-soft: #e6f4f7;
-  --ws-green: #2f9d62;
-  --ws-amber: #d4922a;
-  --ws-coral: #d95545;
+  --ws-line: #ddd5c4;
+  --ws-line-strong: #ddd5c4;
+  --ws-linha-soft: #eae4d6;
+  --ws-accent: #1f4e8c;
+  --ws-accent-soft: #e3ecf7;
+  --ws-azul-rio: #4f86c6;
+  --ws-mar: #dce7f2;
+  --ws-green: #448d49;
+  --ws-green-text: #29612d;
+  --ws-green-tint: #e4e6d6;
+  --ws-amber: #e7b137;
+  --ws-amber-text: #714a00;
+  --ws-amber-tint: #f3e9d4;
+  --ws-coral: #c85032;
+  --ws-coral-text: #8b311a;
+  --ws-coral-tint: #f0e1d4;
 
-  --ws-radius-sm: 10px;
-  --ws-radius: 16px;
+  --ws-display: 'Bricolage Grotesque', 'Arial Black', system-ui, sans-serif;
+  --ws-body: 'Atkinson Hyperlegible', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --ws-radius-sm: 16px;
+  --ws-radius: 18px;
   --ws-radius-lg: 22px;
   --ws-radius-pill: 999px;
 
-  --ws-shadow-sm: 0 1px 2px rgba(15, 45, 58, 0.05);
-  --ws-shadow: 0 4px 20px rgba(15, 45, 58, 0.08);
-  --ws-shadow-lg: 0 12px 40px rgba(15, 45, 58, 0.14);
-  --ws-shadow-sheet: 0 -10px 40px rgba(15, 45, 58, 0.12);
+  --ws-shadow-sm: none;
+  --ws-shadow: none;
+  --ws-shadow-lg: none;
+  --ws-shadow-sheet: 0 -8px 28px rgba(30, 42, 48, 0.08);
 
   --ws-touch: 48px;
   --ws-sheet-handle: 36px;
@@ -34,13 +47,9 @@
   --ws-safe-right: env(safe-area-inset-right, 0px);
 
   color-scheme: light;
-  font-family:
-    'Inter',
-    system-ui,
-    -apple-system,
-    'Segoe UI',
-    Roboto,
-    sans-serif;
+  font-family: var(--ws-body);
+  font-size: 17px;
+  line-height: 1.5;
   color: var(--ws-ink);
   -webkit-font-smoothing: antialiased;
   -webkit-text-size-adjust: 100%;
@@ -63,8 +72,19 @@ body {
   overscroll-behavior: none;
 }
 
+h1,
+h2,
+h3,
+.ws-display {
+  font-family: var(--ws-display);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
 button {
   font: inherit;
+  font-weight: 700;
   color: inherit;
   cursor: pointer;
 }
@@ -88,14 +108,42 @@ button {
 }
 
 /* Leaflet marker dots — used by src/components/map/markerIcons.js */
+.ws-pin {
+  position: relative;
+  display: block;
+  width: 24px;
+  height: 24px;
+}
+
+.ws-pin-shape {
+  display: block;
+  width: 22px;
+  height: 22px;
+  filter: drop-shadow(0 1px 2px rgba(30, 42, 48, 0.25));
+}
+
+.ws-pin-hazard {
+  position: absolute;
+  top: -5px;
+  right: -6px;
+  width: 14px;
+  height: 14px;
+}
+
+.ws-pin--selected .ws-pin-shape {
+  outline: 3px solid var(--ws-ink);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
 .ws-marker-dot {
   display: block;
   width: 20px;
   height: 20px;
   border-radius: 50%;
   background: var(--dot-color, var(--ws-accent));
-  border: 2px solid white;
-  box-shadow: 0 1px 4px rgba(15, 45, 58, 0.35);
+  border: 2.5px solid white;
+  box-shadow: 0 1px 4px rgba(30, 42, 48, 0.25);
 }
 .ws-marker-dot--pending {
   width: 26px;

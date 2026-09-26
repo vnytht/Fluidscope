@@ -135,31 +135,33 @@ export default function AddFlowSheet({
       </div>
 
       <div className="flow-sheet-body">
-        {step === 'location' && (
+        <div hidden={step !== 'location'}>
           <LocationStep
             location={location}
             onPick={onLocationChange}
             onPan={onPanRequest}
           />
-        )}
-        {step === 'sourceType' && (
+        </div>
+        <div hidden={step !== 'sourceType'}>
           <SourceTypeStep
             sourceType={sourceType}
             onChange={setSourceType}
             details={sourceDetails}
             onDetailsChange={setSourceDetails}
           />
-        )}
-        {step === 'quality' && (
+        </div>
+        <div hidden={step !== 'quality'}>
           <QualityStep
             qualityMeasures={qualityMeasures}
             readings={readings}
             onChange={setReadings}
             onAddMeasure={addQualityMeasure}
           />
-        )}
-        {step === 'hazard' && <HazardStep value={hazards} onChange={setHazards} />}
-        {step === 'review' && (
+        </div>
+        <div hidden={step !== 'hazard'}>
+          <HazardStep value={hazards} onChange={setHazards} />
+        </div>
+        <div hidden={step !== 'review'}>
           <ReviewStep
             location={location}
             sourceType={sourceType}
@@ -169,7 +171,7 @@ export default function AddFlowSheet({
             qualityMeasures={qualityMeasures}
             onEdit={goToStep}
           />
-        )}
+        </div>
       </div>
 
       <div className="flow-sheet-footer">

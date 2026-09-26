@@ -93,6 +93,15 @@ export default function SafetyScalePicker({ scale, value, onChange }) {
             }}
           >
             <div className="scale-ruler-track-bg" />
+            {bands.length > 8 &&
+              bands.map((band) => (
+                <span
+                  key={`tick-${band.value}`}
+                  className="scale-ruler-tick"
+                  style={{ left: `${positionToPercent(band.position, scale)}%` }}
+                  aria-hidden="true"
+                />
+              ))}
             {selected && (
               <div
                 className={`scale-ruler-thumb${withinSafe ? ' scale-ruler-thumb--safe' : ' scale-ruler-thumb--unsafe'}`}
@@ -105,6 +114,9 @@ export default function SafetyScalePicker({ scale, value, onChange }) {
 
       <div className="scale-ruler-labels" role="group" aria-label={t('quality.valuesAria')}>
         {bands.map((band, index) => {
+          const isSelected = selectedIndex === index
+          const showLabel = band.showLabel !== false || isSelected
+          if (!showLabel) return null
           const pct = positionToPercent(band.position, scale)
           const edge =
             index === 0 ? ' scale-ruler-label--start' : index === bands.length - 1 ? ' scale-ruler-label--end' : ''
@@ -112,16 +124,23 @@ export default function SafetyScalePicker({ scale, value, onChange }) {
             <button
               key={band.value}
               type="button"
-              className={`scale-ruler-label${edge}${selectedIndex === index ? ' scale-ruler-label--selected' : ''}`}
+              className={`scale-ruler-label${edge}${isSelected ? ' scale-ruler-label--selected' : ''}`}
               style={{ left: `${pct}%` }}
               onClick={() => selectIndex(index)}
-              aria-pressed={selectedIndex === index}
+              aria-pressed={isSelected}
             >
               {band.value}
             </button>
           )
         })}
       </div>
+
+      {(scale.scaleText || scale.standardText) && (
+        <p className="safety-scale-meta">
+          {scale.scaleText ? <span>{t('quality.scale', { scale: scale.scaleText })}</span> : null}
+          {scale.standardText ? <span>{t('quality.standard', { standard: scale.standardText })}</span> : null}
+        </p>
+      )}
 
       {!selected && <p className="safety-scale-prompt">{t('quality.slidePrompt')}</p>}
     </div>

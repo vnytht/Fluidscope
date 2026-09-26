@@ -5,10 +5,10 @@ const apaBasins = JSON.parse(apaBasinsRaw)
 const apaSubBasins = JSON.parse(apaSubBasinsRaw)
 
 export const APA_BASIN_COLORS = {
-  Lima: '#1f6f7a',
-  Minho: '#4a5a38',
-  Neiva: '#6a5a28',
-  Costeiras: '#3d5c66',
+  Lima: '#1f4e8c',
+  Minho: '#4f86c6',
+  Neiva: '#2a6499',
+  Costeiras: '#7aa3cf',
 }
 
 const basinByCode = new Map(

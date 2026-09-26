@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<!-- saved from url=(0072)file:///Users/vinaythorat/Downloads/WaterScope%20Design%20Direction.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>WaterScope Design Direction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="stylesheet" href="./WaterScope Design Direction_files/css2">
+<style>
+  /* Single light theme on purpose: this page documents a light-only app palette, so swatches must stay true. */
+  :root {
+    color-scheme: light;
+    --papel: #F4EFE4;
+    --branco: #FFFFFF;
+    --ink: #1E2A30;
+    --grey: #5E5F59;
+    --linha: #DDD5C4;
+    --linha-soft: #EAE4D6;
+    --azul: #1F4E8C;
+    --azul-rio: #4F86C6;
+    --azul-claro: #E3ECF7;
+    --mar: #DCE7F2;
+    --safe: #448D49;   --safe-text: #29612D;   --safe-tint: #E4E6D6;
+    --gold: #E7B137;   --gold-text: #714A00;   --gold-tint: #F3E9D4;
+    --clay: #C85032;   --clay-text: #8B311A;   --clay-tint: #F0E1D4;
+    --display: 'Bricolage Grotesque', 'Arial Black', system-ui, sans-serif;
+    --body: 'Atkinson Hyperlegible', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--papel);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 17px;
+    line-height: 1.5;
+    padding-inline: 16px;
+    padding-block: 0;
+  }
+  .page { max-width: 920px; margin: 0 auto; padding-block: 40px 72px; }
+  h1, h2, h3 { font-family: var(--display); font-weight: 800; text-wrap: balance; margin: 0; }
+  h1 { font-size: clamp(34px, 6vw, 52px); line-height: 1; letter-spacing: -0.01em; }
+  h2 { font-size: 24px; line-height: 1.1; margin-bottom: 6px; }
+  h3 { font-size: 18px; line-height: 1.2; margin-bottom: 8px; }
+  p { margin: 0; }
+  .muted { color: var(--grey); }
+  .small { font-size: 14px; }
+  .kicker { font-size: 14px; font-weight: 700; color: var(--grey); letter-spacing: 0.04em; text-transform: uppercase; }
+  .place { color: var(--azul); }
+  code, .hex { font-family: var(--mono); font-size: 13px; }
+
+  header.intro { display: grid; gap: 14px; padding-bottom: 28px; border-bottom: 2px solid var(--ink); }
+  header.intro .lede { max-width: 62ch; font-size: 18px; }
+  .meta-row { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 14px; color: var(--grey); }
+
+  section { padding-block: 36px 8px; display: grid; gap: 16px; }
+  section > .sub { max-width: 62ch; }
+
+  .card { background: var(--branco); border-radius: 22px; padding: 18px 20px; }
+  .grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
+  .grid-2 { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+
+  .vibe { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .vibe .card { display: grid; gap: 6px; align-content: start; }
+
+  .swatch { background: var(--branco); border-radius: 16px; overflow: hidden; display: grid; grid-template-rows: 64px auto; }
+  .swatch .chip { border-bottom: 1px solid var(--linha-soft); }
+  .swatch .info { padding: 10px 12px 12px; display: grid; gap: 2px; }
+  .swatch .name { font-weight: 700; font-size: 15px; }
+  .swatch .use { font-size: 13px; color: var(--grey); }
+  .group-label { font-size: 14px; font-weight: 700; color: var(--grey); margin-top: 6px; }
+
+  .status-row { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+  .status { background: var(--branco); border-radius: 18px; padding: 16px; display: grid; gap: 10px; align-content: start; }
+  .status .hexes { display: grid; gap: 2px; font-family: var(--mono); font-size: 12.5px; color: var(--grey); }
+  .badge { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; padding: 4px 11px; border-radius: 99px; line-height: 1.3; width: fit-content; }
+  .badge svg { flex-shrink: 0; }
+  .b-safe { background: var(--safe-tint); color: var(--safe-text); box-shadow: inset 0 0 0 1px rgba(68,141,73,.35); }
+  .b-not { background: var(--clay-tint); color: var(--clay-text); box-shadow: inset 0 0 0 1px rgba(200,80,50,.35); }
+  .b-haz { background: var(--gold-tint); color: var(--gold-text); box-shadow: inset 0 0 0 1px rgba(231,177,55,.35); }
+
+  .pins { background: #E9E3D5; border-radius: 18px; padding: 14px 18px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; }
+  .pins svg { max-width: 100%; height: auto; }
+
+  .fonts { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+  .font-card { background: var(--branco); border-radius: 22px; padding: 20px; display: grid; gap: 8px; align-content: start; }
+  .specimen-display { font-family: var(--display); font-weight: 800; font-size: 34px; line-height: 1; }
+  .digits { font-size: 22px; font-weight: 700; letter-spacing: 0.04em; }
+
+  .table-wrap { overflow-x: auto; background: var(--branco); border-radius: 22px; padding: 6px 20px; }
+  table { width: 100%; border-collapse: collapse; min-width: 560px; }
+  th, td { text-align: left; padding: 12px 8px 12px 0; border-bottom: 1px solid var(--linha-soft); vertical-align: baseline; }
+  th { font-size: 13px; color: var(--grey); font-weight: 700; }
+  tr:last-child td { border-bottom: none; }
+  td.num { font-variant-numeric: tabular-nums; color: var(--grey); font-size: 14px; white-space: nowrap; }
+
+  .shapes { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+  .shape { background: var(--branco); border-radius: 18px; padding: 14px 16px; display: flex; gap: 14px; align-items: center; }
+  .shape p { font-size: 14px; }
+
+  .scale-demo { background: var(--branco); border-radius: 22px; padding: 20px; display: grid; gap: 10px; }
+  .scale { position: relative; padding: 20px 4px 0; }
+  .scale .bracket { position: absolute; top: 20px; left: 4px; width: 10%; height: 14px; border: 1.5px solid var(--safe); border-bottom: none; border-radius: 8px 8px 0 0; }
+  .scale .bracket-label { position: absolute; top: 0; left: 4px; font-size: 12px; font-weight: 700; color: var(--safe-text); white-space: nowrap; }
+  .scale .track { position: relative; height: 12px; margin-top: 14px; border-radius: 99px; background: #E6E0D3; }
+  .scale .dot { position: absolute; top: 50%; width: 22px; height: 22px; border-radius: 50%; border: 2.5px solid #fff; transform: translate(-50%, -50%); }
+  .scale-labels { position: relative; height: 26px; margin: 6px 8px 0; font-size: 13px; font-weight: 700; color: var(--grey); }
+  .scale-labels span { position: absolute; top: 0; transform: translateX(-50%); padding: 4px 8px; border-radius: 99px; }
+
+  ul.rules { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+  ul.rules li { background: var(--branco); border-radius: 16px; padding: 12px 16px; display: grid; gap: 2px; }
+  ul.rules li strong { font-weight: 700; }
+
+  .decisions { display: grid; gap: 12px; }
+  .decision { background: var(--branco); border-radius: 22px; padding: 18px 20px; border: 2px solid var(--azul); display: grid; gap: 10px; }
+  .decision .opts { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+  .opt { background: var(--papel); border-radius: 14px; padding: 10px 12px; font-size: 15px; }
+  .opt b { display: block; }
+  .tag { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 99px; background: var(--azul-claro); color: var(--azul); margin-left: 4px; vertical-align: 1px; }
+
+  footer { margin-top: 40px; padding-top: 18px; border-top: 2px solid var(--ink); font-size: 14px; color: var(--grey); }
+  @media (max-width: 480px) { body { font-size: 16px; } .card, .font-card, .scale-demo { padding: 16px; } }
+</style>
+
+<div class="page">
+  <header class="intro">
+    <p class="kicker">Visual direction · for review</p>
+    <h1>WaterScope, <span class="place">by the community.</span></h1>
+    <p class="lede">The agreed direction for colors, fonts, type sizes and status shapes for the WaterScope web platform in Viana do Castelo. The goal is an app that feels made for this place and these people, not a generic AI template. Layout decisions are out of scope here except for the open questions at the end.</p>
+    <div class="meta-row"><span>Audience: residents aged 14 to 85+ with private wells, springs, mines and reservoirs</span><span>Framing: citizen science, community action</span></div>
+  </header>
+
+  <section>
+    <h2>The vibe</h2>
+    <p class="sub">A neighbourhood notice board: warm and approachable in its shapes, bold and collective in its voice.</p>
+    <div class="vibe">
+      <div class="card"><h3>Warm shapes</h3><p class="small muted">Cream paper background, soft white cards with large rounded corners, pill buttons. Few hard lines, no heavy shadows.</p></div>
+      <div class="card"><h3>Bold, collective voice</h3><p class="small muted">Chunky headlines and a "we" tone: <em>Our water, measured by us.</em> Community numbers like "34 sources tested" are shown with pride.</p></div>
+      <div class="card"><h3>Local roots</h3><p class="small muted">Azulejo-inspired blue, granite ink, and the cream of the paper test strips. Place names are shown in blue so <span class="place">Afife</span> stands apart from the source name.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Color</h2>
+    <p class="sub">All text colors meet WCAG AA (4.5:1) on their backgrounds. Shapes and map marks meet 3:1.</p>
+
+    <p class="group-label">Neutrals</p>
+    <div class="grid">
+      <div class="swatch"><div class="chip" style="background:#F4EFE4"></div><div class="info"><span class="name">Papel</span><span class="hex">#F4EFE4</span><span class="use">Page background</span></div></div>
+      <div class="swatch"><div class="chip" style="background:#FFFFFF"></div><div class="info"><span class="name">Branco</span><span class="hex">#FFFFFF</span><span class="use">Cards and sheets</span></div></div>
+      <div class="swatch"><div class="chip" style="background:#1E2A30"></div><div class="info"><span class="name">Granito ink</span><span class="hex">#1E2A30</span><span class="use">Main text · 12.8:1</span></div></div>
+      <div class="swatch"><div class="chip" style="background:#5E5F59"></div><div class="info"><span class="name">Granito grey</span><span class="hex">#5E5F59</span><span class="use">Secondary text · 5.6:1</span></div></div>
+      <div class="swatch"><div class="chip" style="background:#DDD5C4"></div><div class="info"><span class="name">Linha</span><span class="hex">#DDD5C4</span><span class="use">Borders and dividers</span></div></div>
+    </div>
+
+    <p class="group-label">Blues: identity and water</p>
+    <div class="grid">
+      <div class="swatch"><div class="chip" style="background:#1F4E8C"></div><div class="info"><span class="name">Azul profundo</span><span class="hex">#1F4E8C</span><span class="use">Brand, buttons, anything tappable, place names · 8.3:1</span></div></div>
+      <div class="swatch"><div class="chip" style="background:#4F86C6"></div><div class="info"><span class="name">Azul rio</span><span class="hex">#4F86C6</span><span class="use">Rivers and map lines only. Never text (3.3:1)</span></div></div>
+      <div class="swatch"><div class="chip" style="background:#E3ECF7"></div><div class="info"><span class="name">Azul claro</span><span class="hex">#E3ECF7</span><span class="use">Selected states, light tints</span></div></div>
+      <div class="swatch"><div class="chip" style="background:#DCE7F2"></div><div class="info"><span class="name">Mar</span><span class="hex">#DCE7F2</span><span class="use">Sea on the map</span></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Status system</h2>
+    <p class="sub">Three meanings, each with its own shape, color and word, so no one has to rely on color alone. Readings are two-state (inside or outside the safe limit), matching the app's existing logic. Hazards are reports from people, not test results, so they get the warning triangle.</p>
+    <div class="status-row">
+      <div class="status">
+        <span class="kicker">Reading · inside safe limit</span>
+        <span class="badge b-safe"><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="#448D49"></circle></svg>Safe</span>
+        <div class="hexes"><span>fill #448D49</span><span>text #29612D</span><span>tint #E4E6D6</span></div>
+      </div>
+      <div class="status">
+        <span class="kicker">Reading · outside safe limit</span>
+        <span class="badge b-not"><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><polygon points="8,0.6 15.4,8 8,15.4 0.6,8" fill="#C85032"></polygon></svg>Not safe</span>
+        <div class="hexes"><span>fill #C85032</span><span>text #8B311A</span><span>tint #F0E1D4</span></div>
+      </div>
+      <div class="status">
+        <span class="kicker">Report · hazard nearby</span>
+        <span class="badge b-haz"><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><polygon points="8,1 15.3,14.5 0.7,14.5" fill="#E7B137" stroke="#714A00" stroke-width="1.2" stroke-linejoin="round"></polygon><rect x="7.3" y="5.5" width="1.4" height="4.6" rx=".7" fill="#1E2A30"></rect><circle cx="8" cy="12.1" r=".85" fill="#1E2A30"></circle></svg>Hazard reported</span>
+        <div class="hexes"><span>fill #E7B137</span><span>text / edge #714A00</span><span>tint #F3E9D4</span></div>
+      </div>
+    </div>
+    <p class="small muted">Chips: pill shape, 14px bold, colored text, background tint mixed 10% into papel, plus a 1px edge in the fill color at 35% opacity so the chip stays visible on cream.</p>
+
+    <div class="pins" role="img" aria-label="Example map pins: green circles for safe, clay diamonds for not safe, and a small gold triangle badge on a pin's corner when a hazard was reported.">
+      <span class="kicker" style="margin:0">On the map</span>
+      <svg width="230" height="44" viewBox="0 0 230 44" aria-hidden="true">
+        <circle cx="22" cy="24" r="8.5" fill="#448D49" stroke="#fff" stroke-width="2.5"></circle>
+        <polygon points="70,12.5 81.5,24 70,35.5 58.5,24" fill="#C85032" stroke="#fff" stroke-width="2.5" stroke-linejoin="round"></polygon>
+        <circle cx="118" cy="24" r="8.5" fill="#448D49" stroke="#fff" stroke-width="2.5"></circle>
+        <g transform="translate(126 6)"><polygon points="7,0.5 14,13 0,13" fill="#E7B137" stroke="#fff" stroke-width="2" stroke-linejoin="round"></polygon><polygon points="7,2.6 12.2,11.9 1.8,11.9" fill="none" stroke="#714A00" stroke-width=".8"></polygon><rect x="6.35" y="4.6" width="1.3" height="4" rx=".6" fill="#1E2A30"></rect><circle cx="7" cy="10.3" r=".75" fill="#1E2A30"></circle></g>
+        <polygon points="170,12.5 181.5,24 170,35.5 158.5,24" fill="#C85032" stroke="#fff" stroke-width="2.5" stroke-linejoin="round"></polygon>
+        <g transform="translate(176 6)"><polygon points="7,0.5 14,13 0,13" fill="#E7B137" stroke="#fff" stroke-width="2" stroke-linejoin="round"></polygon><polygon points="7,2.6 12.2,11.9 1.8,11.9" fill="none" stroke="#714A00" stroke-width=".8"></polygon><rect x="6.35" y="4.6" width="1.3" height="4" rx=".6" fill="#1E2A30"></rect><circle cx="7" cy="10.3" r=".75" fill="#1E2A30"></circle></g>
+      </svg>
+      <span class="small muted">Pin shape shows the reading. A small gold triangle on the corner means a hazard was reported. (See open decision 2.)</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>Reading scale</h2>
+    <p class="sub">The existing strip-scale picker stays as designed: grey track, "Safe limit" bracket, values at their true positions, selected value highlighted. The dot stays two-state: green inside the safe limit, red outside. Only the palette changes.</p>
+    <div class="grid-2">
+      <div class="scale-demo">
+        <span class="kicker">Nitrate · 10 mg/L</span>
+        <div class="scale">
+          <div class="bracket"></div><span class="bracket-label">Safe limit</span>
+          <div class="track"><div class="dot" style="left:10%;background:#448D49"></div></div>
+        </div>
+        <div class="scale-labels"><span style="left:0;transform:none">0</span><span style="left:10%;background:#E3ECF7;color:#1F4E8C">10</span><span style="left:25%">25</span><span style="left:50%">50</span><span style="left:100%;transform:translateX(-100%)">100+</span></div>
+      </div>
+      <div class="scale-demo">
+        <span class="kicker">Nitrate · 25 mg/L</span>
+        <div class="scale">
+          <div class="bracket"></div><span class="bracket-label">Safe limit</span>
+          <div class="track"><div class="dot" style="left:25%;background:#C85032"></div></div>
+        </div>
+        <div class="scale-labels"><span style="left:0;transform:none">0</span><span style="left:10%">10</span><span style="left:25%;background:#E3ECF7;color:#1F4E8C">25</span><span style="left:50%">50</span><span style="left:100%;transform:translateX(-100%)">100+</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Fonts</h2>
+    <p class="sub">Two families, each with one job. Both are free on Google Fonts and support Portuguese characters (ã, ç, õ).</p>
+    <div class="fonts">
+      <div class="font-card">
+        <span class="kicker">Bricolage Grotesque · ExtraBold 800</span>
+        <p class="specimen-display">Our water, <span class="place">measured by us.</span></p>
+        <p class="small muted">Headings and the single hero number on a result screen. Never for buttons, chips or data in lists.</p>
+      </div>
+      <div class="font-card">
+        <span class="kicker">Atkinson Hyperlegible · Regular 400, Bold 700</span>
+        <p>Don't use it in baby bottles. For adults, no immediate risk.</p>
+        <p class="digits">0123456789 · Add reading</p>
+        <p class="small muted">Everything else: body text, readings and values, labels, buttons, chips, legend. Designed by the Braille Institute for low-vision readers, with digits that are hard to confuse.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Type scale</h2>
+    <p class="sub">One hero per screen: only one element uses level 1. "Large" is about 15% bigger, for an in-app text-size setting or to follow the phone's own setting.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Level</th><th>Example</th><th>Font</th><th>Standard</th><th>Large</th></tr></thead>
+        <tbody>
+          <tr><td>1 · Hero</td><td style="font-family:var(--display);font-weight:800;font-size:28px;line-height:1">Well 0342, <span class="place">Afife</span></td><td class="num">Bricolage 800</td><td class="num">28px</td><td class="num">32px</td></tr>
+          <tr><td>1b · Hero number</td><td style="font-family:var(--display);font-weight:800;font-size:44px;line-height:1">25</td><td class="num">Bricolage 800</td><td class="num">56–64px</td><td class="num">64–72px</td></tr>
+          <tr><td>2 · Section</td><td style="font-family:var(--display);font-weight:800;font-size:20px">Readings</td><td class="num">Bricolage 800</td><td class="num">20px</td><td class="num">24px</td></tr>
+          <tr><td>3 · Value</td><td style="font-weight:700;font-size:18px">25 mg/L</td><td class="num">Atkinson 700</td><td class="num">17–20px</td><td class="num">20–22px</td></tr>
+          <tr><td>4 · Body</td><td style="font-size:17px">Avoid in baby bottles.</td><td class="num">Atkinson 400</td><td class="num">17px</td><td class="num">19px</td></tr>
+          <tr><td>5 · Label</td><td style="font-weight:700;font-size:15px">Add reading</td><td class="num">Atkinson 400/700</td><td class="num">14–16px</td><td class="num">16–18px</td></tr>
+          <tr><td>6 · Meta</td><td style="font-size:14px;color:var(--grey)">Dug well · tested 12 Sep</td><td class="num">Atkinson 400</td><td class="num">14–15px</td><td class="num">16px</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Shapes</h2>
+    <p class="sub">Always drawn as icons on a 16 × 16 grid, never typed characters (fonts draw ● ▲ ◆ at different sizes). The diamond and triangle are slightly larger than the circle so all three look equal.</p>
+    <div class="shapes">
+      <div class="shape"><svg width="32" height="32" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="#448D49"></circle></svg><div><b>Safe</b><p class="muted">Circle</p></div></div>
+      <div class="shape"><svg width="32" height="32" viewBox="0 0 16 16" aria-hidden="true"><polygon points="8,0.6 15.4,8 8,15.4 0.6,8" fill="#C85032"></polygon></svg><div><b>Not safe</b><p class="muted">Diamond</p></div></div>
+      <div class="shape"><svg width="32" height="32" viewBox="0 0 16 16" aria-hidden="true"><polygon points="8,1 15.3,14.5 0.7,14.5" fill="#E7B137" stroke="#714A00" stroke-width="1" stroke-linejoin="round"></polygon><rect x="7.3" y="5.5" width="1.4" height="4.6" rx=".7" fill="#1E2A30"></rect><circle cx="8" cy="12.1" r=".85" fill="#1E2A30"></circle></svg><div><b>Hazard reported</b><p class="muted">Triangle pointing up, dark edge, "!"</p></div></div>
+    </div>
+    <p class="small muted">Sizes: 14, 16 or 18px next to text; 20–24px on the map with a 2.5px white outline. Always pair a shape with its word.</p>
+  </section>
+
+  <section>
+    <h2>Accessibility rules</h2>
+    <ul class="rules">
+      <li><strong>Never color alone.</strong><span class="small muted">Every status has a shape and a word.</span></li>
+      <li><strong>Contrast.</strong><span class="small muted">4.5:1 minimum for text, 3:1 for icons and borders. The palette above already meets this.</span></li>
+      <li><strong>Size up.</strong><span class="small muted">17px body text, 48px minimum touch targets, and a Large text option for older users.</span></li>
+      <li><strong>Readable outdoors.</strong><span class="small muted">Dark ink on warm paper, no pale grey text, no thin weights.</span></li>
+      <li><strong>Plain language.</strong><span class="small muted">Verdicts say what to do ("Don't use it in baby bottles"), not just a number.</span></li>
+      <li><strong>Room for Portuguese.</strong><span class="small muted">Portuguese labels run 20–30% longer than English. Buttons and chips must allow for it.</span></li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Open decisions</h2>
+    <p class="sub">These change layout or how data is shown, so they're left for review together.</p>
+    <div class="decisions">
+      <div class="decision">
+        <h3>1 · Source detail sheet: rows or tiles?</h3>
+        <div class="opts">
+          <div class="opt"><b>List rows <span class="tag">current</span></b>One reading per row: measure, value, status. Calm, table-like, scales well when more tests (E. coli) are added.</div>
+          <div class="opt"><b>Tiles</b>Readings in small side-by-side cards. More visual at a glance, gets crowded beyond two measures.</div>
+        </div>
+      </div>
+      <div class="decision">
+        <h3>2 · What should map pins show?</h3>
+        <div class="opts">
+          <div class="opt"><b>Hazard only <span class="tag">current</span></b>Pin color only says whether a hazard was reported (green = none, red = reported). Test results are not shown on the map.</div>
+          <div class="opt"><b>Reading + hazard badge</b>Pin shape shows the reading (circle or diamond); a small gold triangle marks a reported hazard. Avoids red meaning two different things.</div>
+        </div>
+      </div>
+      <div class="decision">
+        <h3>3 · Catchment colors</h3>
+        <div class="opts">
+          <div class="opt"><b>Purple and orange <span class="tag">current</span></b>The orange is close to the hazard gold and could be confused with it.</div>
+          <div class="opt"><b>Shades of blue</b>Watersheds read as water. Only one catchment is highlighted at a time, so blue variants are enough.</div>
+        </div>
+      </div>
+      <div class="decision">
+        <h3>4 · Language</h3>
+        <div class="opts">
+          <div class="opt"><b>English</b>Current interface text.</div>
+          <div class="opt"><b>Portuguese or bilingual</b>Better fit for residents. Needs design with longer labels in mind.</div>
+        </div>
+      </div>
+    </div>
+    <p class="small muted">Note: the reading data (<code>qualityBands.js</code>) also labels bands as "caution" or "concern" with verdict sentences. The interface does not show a separate caution level, and this direction keeps it two-state. The triangle is reserved for hazards.</p>
+  </section>
+
+  <footer>WaterScope · Viana do Castelo · visual direction draft</footer>
+</div>
+
+</body></html>

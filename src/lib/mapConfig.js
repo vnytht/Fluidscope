@@ -34,6 +34,13 @@ export const BASEMAPS = {
     attribution: 'Tiles &copy; Esri',
     maxZoom: 13,
   },
+  opentopo: {
+    label: 'OpenTopoMap',
+    url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+    attribution:
+      'Map data: © OpenStreetMap, SRTM | Style: © OpenTopoMap (CC-BY-SA)',
+    maxZoom: 17,
+  },
 }
 
 export const DEFAULT_BASEMAP = 'osm'

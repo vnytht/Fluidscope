@@ -1,15 +1,12 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useAppState } from '../../context/AppStateContext'
 import { useLanguage } from '../../context/LanguageContext'
 import { sourceTypeName } from '../../lib/i18n'
 import {
-  CHAT_BASINS,
   CHAT_TOWNS,
   THREAD_SUBJECTS,
-  UNMAPPED_BASIN,
   WHOLE_BASIN_TOWN_ID,
-  basinThreadCount,
-  getChatBasin,
+  communityThreadId,
   getChatTown,
   lastMessageForThread,
   messageCountForThread,
@@ -76,16 +73,16 @@ function ChatMessages({ messages, user, emptyLabel, dateLocale, youLabel }) {
 export default function ChatPanel({
   onClose,
   variant = 'fullscreen',
-  startBasinId = null,
   startTownId = null,
   taggedPlace = null,
 }) {
   const { dateLocale, locale, t } = useLanguage()
-  const { user, samples, chatThreads, chatMessages, createThread, replyToThread } = useAppState()
+  const { user, samples, chatThreads, chatMessages, createThread, ensureCommunityThread, replyToThread } =
+    useAppState()
   const isEmbedded = variant === 'embedded'
 
-  const [basinId, setBasinId] = useState(startBasinId)
   const [townId, setTownId] = useState(startTownId)
+  const [viewingThreads, setViewingThreads] = useState(false)
   const [threadId, setThreadId] = useState(null)
   const [composing, setComposing] = useState(false)
   const [draft, setDraft] = useState('')
@@ -97,25 +94,37 @@ export default function ChatPanel({
     text: '',
   })
 
+  const communityId = townId ? communityThreadId(townId) : null
+
+  useEffect(() => {
+    if (townId) ensureCommunityThread(townId)
+  }, [townId, ensureCommunityThread])
+
   const level = composing
     ? 'compose'
     : threadId
       ? 'thread'
-      : townId
+      : viewingThreads && townId
         ? 'threads'
-        : basinId
-          ? 'towns'
-          : 'basins'
+        : townId
+          ? 'community'
+          : 'towns'
 
-  const basin = basinId ? getChatBasin(basinId) : null
   const thread = chatThreads.find((item) => item.id === threadId) ?? null
+  const communityMessages = useMemo(
+    () =>
+      chatMessages
+        .filter((message) => message.threadId === communityId)
+        .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)),
+    [chatMessages, communityId],
+  )
   const scopedThreads = useMemo(
-    () => (basinId && townId ? threadsInScope(chatThreads, basinId, townId) : []),
-    [chatThreads, basinId, townId],
+    () => (townId ? threadsInScope(chatThreads, townId) : []),
+    [chatThreads, townId],
   )
   const placeOptions = useMemo(
-    () => (basinId && townId ? samplesForChatPlace(samples, basinId, townId) : []),
-    [samples, basinId, townId],
+    () => (townId ? samplesForChatPlace(samples, townId) : []),
+    [samples, townId],
   )
   const threadMessages = useMemo(
     () =>
@@ -126,29 +135,31 @@ export default function ChatPanel({
   )
 
   const title =
-    level === 'basins'
+    level === 'towns'
       ? t('chat.title')
-      : level === 'towns'
-        ? basin?.name
+      : level === 'community'
+        ? townDisplayName(townId, t)
         : level === 'threads'
           ? townDisplayName(townId, t)
           : level === 'compose'
-            ? t('chat.newThread')
-            : thread
-              ? threadTitle(thread, t)
-              : t('chat.title')
+          ? t('chat.newThread')
+          : thread
+            ? threadTitle(thread, t)
+            : t('chat.title')
 
   const subtitle =
     level === 'towns'
       ? t('chat.pickTown')
-      : level === 'threads'
-        ? basin?.name
-        : level === 'thread' && thread
+      : level === 'community'
+        ? t('chat.communitySub')
+        : level === 'threads'
+          ? t('chat.threadsForTown')
+          : level === 'thread' && thread
           ? [subjectLabel(thread.subject, t), thread.placeLabel, townDisplayName(thread.townId, t)]
               .filter(Boolean)
               .join(' · ')
           : level === 'compose'
-            ? `${basin?.name} · ${townDisplayName(townId, t)}`
+            ? townDisplayName(townId, t)
             : t('chat.titleSub')
 
   function handleBack() {
@@ -158,6 +169,11 @@ export default function ChatPanel({
     }
     if (threadId) {
       setThreadId(null)
+      setViewingThreads(true)
+      return
+    }
+    if (viewingThreads) {
+      setViewingThreads(false)
       return
     }
     if (townId) {
@@ -166,14 +182,6 @@ export default function ChatPanel({
         return
       }
       setTownId(null)
-      return
-    }
-    if (basinId) {
-      if (startBasinId && !startTownId) {
-        onClose?.()
-        return
-      }
-      setBasinId(null)
       return
     }
     onClose?.()
@@ -187,6 +195,7 @@ export default function ChatPanel({
       otherPlace: '',
       text: '',
     })
+    setViewingThreads(true)
     setComposing(true)
   }
 
@@ -201,7 +210,7 @@ export default function ChatPanel({
       : compose.otherPlace.trim() || taggedPlace?.label || null
 
     const created = createThread({
-      basinId,
+      basinId: selected?.basinChatId ?? 'lima',
       townId,
       subject: compose.subject,
       title: compose.title,
@@ -210,6 +219,7 @@ export default function ChatPanel({
       text: compose.text,
     })
     setComposing(false)
+    setViewingThreads(true)
     setThreadId(created.id)
   }
 
@@ -220,7 +230,13 @@ export default function ChatPanel({
     setDraft('')
   }
 
-  const basins = [...CHAT_BASINS, UNMAPPED_BASIN]
+  function handleCommunityReply(e) {
+    e.preventDefault()
+    if (!draft.trim() || !communityId) return
+    ensureCommunityThread(townId)
+    replyToThread(communityId, draft)
+    setDraft('')
+  }
 
   return (
     <div className={`chat-panel${isEmbedded ? ' chat-panel--embedded' : ''}`}>
@@ -240,43 +256,11 @@ export default function ChatPanel({
         {isEmbedded && <span className="chat-header-spacer" />}
       </div>
 
-      {level === 'basins' && (
-        <div className="chat-list">
-          {basins.map((item) => {
-            const count = basinThreadCount(chatThreads, item.id)
-            return (
-              <button key={item.id} type="button" className="chat-row" onClick={() => setBasinId(item.id)}>
-                <span className="chat-row-copy">
-                  <strong>{item.name}</strong>
-                  <span>
-                    {count === 1 ? t('chat.threadOne') : t('chat.threadMany', { count })}
-                  </span>
-                </span>
-                <IconChevronRight />
-              </button>
-            )
-          })}
-        </div>
-      )}
-
       {level === 'towns' && (
         <div className="chat-list">
-          <button
-            type="button"
-            className="chat-row"
-            onClick={() => setTownId(WHOLE_BASIN_TOWN_ID)}
-          >
-            <span className="chat-row-copy">
-              <strong>{t('chat.wholeBasin')}</strong>
-              <span>
-                {t('chat.threadMany', { count: townThreadCount(chatThreads, basinId, WHOLE_BASIN_TOWN_ID) })}
-              </span>
-            </span>
-            <IconChevronRight />
-          </button>
           {CHAT_TOWNS.map((town) => {
-            const count = townThreadCount(chatThreads, basinId, town.id)
-            const sourceCount = samplesForChatPlace(samples, basinId, town.id).length
+            const count = townThreadCount(chatThreads, town.id)
+            const sourceCount = samplesForChatPlace(samples, town.id).length
             return (
               <button key={town.id} type="button" className="chat-row" onClick={() => setTownId(town.id)}>
                 <span className="chat-row-copy">
@@ -291,6 +275,50 @@ export default function ChatPanel({
             )
           })}
         </div>
+      )}
+
+      {level === 'community' && (
+        <>
+          <div className="chat-messages">
+            <ChatMessages
+              messages={communityMessages}
+              user={user}
+              emptyLabel={t('chat.emptyCommunity')}
+              dateLocale={dateLocale}
+              youLabel={t('chat.you')}
+            />
+          </div>
+          <div className="chat-list-footer chat-list-footer--community">
+            <button
+              type="button"
+              className="chat-new-thread chat-new-thread--secondary"
+              onClick={() => setViewingThreads(true)}
+            >
+              {t('chat.openThreads')}
+              {scopedThreads.length
+                ? ` · ${
+                    scopedThreads.length === 1
+                      ? t('chat.threadOne')
+                      : t('chat.threadMany', { count: scopedThreads.length })
+                  }`
+                : ''}
+            </button>
+            <form className="chat-input-row chat-input-row--inline" onSubmit={handleCommunityReply}>
+              <div className="chat-input-wrap">
+                <input
+                  type="text"
+                  placeholder={t('chat.placeholderCommunity')}
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                />
+                <button type="submit" className="chat-send" disabled={!draft.trim()} aria-label={t('chat.send')}>
+                  <IconSend />
+                </button>
+              </div>
+            </form>
+            <p className="chat-moderated">{t('chat.moderated')}</p>
+          </div>
+        </>
       )}
 
       {level === 'threads' && (

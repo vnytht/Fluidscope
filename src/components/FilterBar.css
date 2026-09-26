@@ -39,16 +39,16 @@
 }
 
 .filter-chip--selected {
-  border-color: var(--ws-ink);
-  background: var(--ws-ink);
-  color: #111;
+  border-color: var(--ws-accent);
+  background: var(--ws-accent-soft);
+  color: var(--ws-accent);
 }
 
 .filter-option.filter-chip--selected,
 .filter-chip--token {
-  border-color: var(--ws-ink);
-  background: #ececec;
-  color: #111;
+  border-color: color-mix(in srgb, var(--ws-accent) 35%, var(--ws-line));
+  background: var(--ws-accent-soft);
+  color: var(--ws-accent);
 }
 
 .filter-chip--menu.filter-chip--selected {
@@ -178,6 +178,11 @@
   color: var(--ws-ink);
 }
 
+.filter-accordion-toggle > span:first-child {
+  min-width: 0;
+  line-height: 1.25;
+}
+
 .filter-accordion-value {
   font-size: 0.72rem;
   font-weight: 600;
@@ -196,12 +201,19 @@
 }
 
 .filter-group-label {
-  margin: 0 0 8px;
+  margin: 0 0 4px;
   font-size: 0.62rem;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--ws-ink-muted);
+}
+
+.filter-season-hint {
+  margin: 0 0 8px;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: var(--ws-ink-soft);
 }
 
 .filter-chip-row {

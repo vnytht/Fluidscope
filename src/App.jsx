@@ -20,7 +20,7 @@ import FlowVizOptions from './pages/FlowVizOptions'
 import { IconChat, IconPlus } from './components/ui/Icons'
 import { analyzeDownstreamImpact } from './lib/hydrology'
 import { analyzeApaNeighbours } from './lib/apaCatchments'
-import { DEFAULT_FILTERS, applyFilters } from './lib/filters'
+import { DEFAULT_FILTERS, applyFilters, isDefaultFilters } from './lib/filters'
 import { DEFAULT_MAP_LAYERS } from './lib/mapLayers'
 import './App.css'
 
@@ -110,7 +110,10 @@ function AppGate() {
           showBasins={mapLayers.basins}
           showSubBasins={mapLayers.subBasins}
         />
-        <DetailedWaterLayer active={mapLayers.streams} />
+        <DetailedWaterLayer
+          active={mapLayers.streams}
+          emphasized={!isDefaultFilters(filters)}
+        />
         <HydrologyLayer apa={flowActive ? null : impactAnalysis?.apa?.assignment} />
         <SampleMarkers
           samples={filteredSamples}
@@ -175,6 +178,7 @@ function AppGate() {
           aria-label={t('fab.chat')}
         >
           <IconChat />
+          <span>{t('fab.chatLabel')}</span>
         </button>
       )}
 

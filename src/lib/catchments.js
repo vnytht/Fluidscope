@@ -1,8 +1,8 @@
 import { findBasinForPosition, getBasinName } from './hydrology'
 
 export const CATCHMENTS = [
-  { id: 'catchment-estoraos', name: 'Rio Estorãos catchment', color: '#6b4fa0' },
-  { id: 'catchment-lima-lower', name: 'Lower Lima catchment', color: '#c76b3c' },
+  { id: 'catchment-estoraos', name: 'Rio Estorãos catchment', color: '#1f4e8c' },
+  { id: 'catchment-lima-lower', name: 'Lower Lima catchment', color: '#4f86c6' },
 ]
 
 export function getCatchment(id) {
@@ -11,7 +11,7 @@ export function getCatchment(id) {
   const value = String(id ?? 'unmapped')
   let hash = 0
   for (const character of value) hash = (hash * 31 + character.charCodeAt(0)) >>> 0
-  const colors = ['#277f8e', '#6b4fa0', '#397f5e', '#a2642f', '#526fa5']
+  const colors = ['#1f4e8c', '#4f86c6', '#2a6499', '#7aa3cf', '#3d6fa8']
   return { id: value, name: getBasinName(value), color: colors[hash % colors.length] }
 }
 

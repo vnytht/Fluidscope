@@ -29,6 +29,6 @@
 }
 
 .lang-toggle-btn--active {
-  background: var(--ws-ink);
-  color: var(--ws-surface);
+  background: var(--ws-accent);
+  color: white;
 }

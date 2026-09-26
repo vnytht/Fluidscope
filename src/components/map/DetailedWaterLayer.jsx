@@ -63,18 +63,36 @@ function clipToBbox(collection, bbox) {
   }
 }
 
-function apaRiverStyle(feature) {
+function apaRiverCore(feature, emphasized) {
   const order = Number(feature.properties?.stream_order ?? feature.properties?.river_rank ?? 1)
-  const weight = order >= 5 ? 2.4 : order >= 3 ? 1.6 : 1.05
+  const boost = emphasized ? 1.35 : 1
+  const weight = (order >= 5 ? 3.4 : order >= 3 ? 2.4 : 1.6) * boost
+  return { order, weight }
+}
+
+function apaRiverHaloStyle(feature, emphasized) {
+  const { weight } = apaRiverCore(feature, emphasized)
   return {
-    color: '#1a7a92',
-    weight,
-    opacity: order >= 3 ? 0.55 : 0.32,
+    color: '#DCE7F2',
+    weight: weight + 5,
+    opacity: emphasized ? 0.55 : 0.38,
     lineCap: 'round',
+    lineJoin: 'round',
   }
 }
 
-export default function DetailedWaterLayer({ active, basinIds }) {
+function apaRiverStyle(feature, emphasized) {
+  const { order, weight } = apaRiverCore(feature, emphasized)
+  return {
+    color: '#4F86C6',
+    weight,
+    opacity: emphasized ? (order >= 3 ? 0.95 : 0.72) : order >= 3 ? 0.82 : 0.55,
+    lineCap: 'round',
+    lineJoin: 'round',
+  }
+}
+
+export default function DetailedWaterLayer({ active, basinIds, emphasized = false }) {
   const officialRivers = useGeoJson('apa_rivers_viana.geojson', active)
   const waterBodies = useGeoJson('water_bodies_viana.geojson', active)
   const osmRivers = useGeoJson('osm_rivers_viana.geojson', active)
@@ -102,14 +120,34 @@ export default function DetailedWaterLayer({ active, basinIds }) {
       <Pane name="water-bodies" style={{ zIndex: 310 }}>
         {clippedBodies && (
           <GeoJSON
-            key={`water-bodies-${(basinIds ?? []).join('-')}`}
+            key={`water-bodies-${emphasized ? 'on' : 'off'}-${(basinIds ?? []).join('-')}`}
             data={clippedBodies}
             style={{
-              color: '#5eb3c4',
-              weight: 0.8,
-              opacity: 0.45,
-              fillColor: '#8fd0dc',
-              fillOpacity: 0.18,
+              color: '#4F86C6',
+              weight: emphasized ? 1.6 : 1.2,
+              opacity: emphasized ? 0.75 : 0.55,
+              fillColor: '#4F86C6',
+              fillOpacity: emphasized ? 0.28 : 0.2,
+            }}
+            interactive={false}
+          />
+        )}
+      </Pane>
+
+      <Pane name="mapped-waterways-halo" style={{ zIndex: 316 }}>
+        {clippedOsm && (
+          <GeoJSON
+            key={`osm-halo-${emphasized ? 'on' : 'off'}-${(basinIds ?? []).join('-')}`}
+            data={clippedOsm}
+            style={(feature) => {
+              const type = feature.properties?.waterway
+              const core = (type === 'river' ? 2.2 : 1.4) * (emphasized ? 1.3 : 1)
+              return {
+                color: '#DCE7F2',
+                weight: core + 4,
+                opacity: emphasized ? 0.42 : 0.28,
+                lineCap: 'round',
+              }
             }}
             interactive={false}
           />
@@ -119,14 +157,14 @@ export default function DetailedWaterLayer({ active, basinIds }) {
       <Pane name="mapped-waterways" style={{ zIndex: 318 }}>
         {clippedOsm && (
           <GeoJSON
-            key={`osm-waterways-${(basinIds ?? []).join('-')}`}
+            key={`osm-waterways-${emphasized ? 'on' : 'off'}-${(basinIds ?? []).join('-')}`}
             data={clippedOsm}
             style={(feature) => {
               const type = feature.properties?.waterway
               return {
-                color: '#3d9aaa',
-                weight: type === 'river' ? 1.6 : 1,
-                opacity: type === 'river' ? 0.4 : 0.22,
+                color: '#4F86C6',
+                weight: (type === 'river' ? 2.2 : 1.4) * (emphasized ? 1.3 : 1),
+                opacity: type === 'river' ? (emphasized ? 0.7 : 0.48) : emphasized ? 0.45 : 0.32,
                 lineCap: 'round',
               }
             }}
@@ -135,12 +173,23 @@ export default function DetailedWaterLayer({ active, basinIds }) {
         )}
       </Pane>
 
+      <Pane name="official-waterways-halo" style={{ zIndex: 322 }}>
+        {clippedRivers && (
+          <GeoJSON
+            key={`official-halo-${emphasized ? 'on' : 'off'}-${(basinIds ?? []).join('-')}`}
+            data={clippedRivers}
+            style={(feature) => apaRiverHaloStyle(feature, emphasized)}
+            interactive={false}
+          />
+        )}
+      </Pane>
+
       <Pane name="official-waterways" style={{ zIndex: 325 }}>
         {clippedRivers && (
           <GeoJSON
-            key={`official-waterways-${(basinIds ?? []).join('-')}`}
+            key={`official-waterways-${emphasized ? 'on' : 'off'}-${(basinIds ?? []).join('-')}`}
             data={clippedRivers}
-            style={apaRiverStyle}
+            style={(feature) => apaRiverStyle(feature, emphasized)}
             interactive={false}
           />
         )}

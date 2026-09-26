@@ -18,8 +18,9 @@ export const SOURCE_TYPES = [
 ]
 
 export const DEFAULT_QUALITY_MEASURES = [
-  { id: 'nitrate', name: 'Nitrate', scale: '0 / 10 / 25 / 50 / 100+ mg/L' },
-  { id: 'ph', name: 'pH', scale: '5.5 / 6.5 / 7 / 8 / 9' },
+  { id: 'ph', name: 'pH', scale: '0–14, every 0.5' },
+  { id: 'nitrite', name: 'Nitrite as NO₂-N', scale: '0 / 0.5 / 1 / 5 / 10 ppm' },
+  { id: 'nitrate', name: 'Nitrate as NO₃-N', scale: '0 / 5 / 10 / 25 / 50 ppm' },
 ]
 
 // A couple of seeded samples + one past session, so filters and the map
@@ -134,6 +135,18 @@ export const SEED_SAMPLES = [
 
 export const SEED_CHAT_THREADS = [
   {
+    id: 'community-viana',
+    kind: 'community',
+    basinId: 'lima',
+    townId: 'viana',
+    subject: 'status',
+    title: '',
+    placeId: null,
+    placeLabel: null,
+    author: 'Sofia (moderator)',
+    createdAt: '2026-07-10T08:00:00Z',
+  },
+  {
     id: 'thread-1',
     basinId: 'lima',
     townId: 'viana',
@@ -158,7 +171,7 @@ export const SEED_CHAT_THREADS = [
   {
     id: 'thread-3',
     basinId: 'lima',
-    townId: 'whole-basin',
+    townId: 'viana',
     subject: 'investigation',
     title: 'Sample after rain',
     placeId: null,
@@ -180,6 +193,20 @@ export const SEED_CHAT_THREADS = [
 ]
 
 export const SEED_CHAT_MESSAGES = [
+  {
+    id: 'msg-community-1',
+    threadId: 'community-viana',
+    author: 'Sofia (moderator)',
+    text: 'This is the Viana do Castelo community chat. Use threads for one place or one hazard.',
+    createdAt: '2026-07-10T08:00:00Z',
+  },
+  {
+    id: 'msg-community-2',
+    threadId: 'community-viana',
+    author: 'Tiago',
+    text: 'Logged a well near the mill this week. Nitrate still high after rain.',
+    createdAt: '2026-07-12T10:40:00Z',
+  },
   {
     id: 'msg-1',
     threadId: 'thread-3',

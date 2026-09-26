@@ -28,15 +28,14 @@
 
 .login-card h1 {
   margin: 0 0 8px;
-  font-size: 1.6rem;
-  font-weight: 700;
-  letter-spacing: -0.03em;
+  font-size: 28px;
+  line-height: 1;
 }
 
 .login-tagline {
   margin: 0 0 28px;
   color: var(--ws-ink-soft);
-  font-size: 0.92rem;
+  font-size: 17px;
   line-height: 1.45;
 }
 
