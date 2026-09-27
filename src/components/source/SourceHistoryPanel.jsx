@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { hazardName, measureName, sessionName } from '../../lib/i18n'
+import { hazardName, measureName } from '../../lib/i18n'
 import { useLanguage } from '../../context/LanguageContext'
 import {
   buildSourceTimeline,
@@ -53,11 +53,11 @@ function ReadingList({ readings, qualityMeasures, compact = false, t }) {
   )
 }
 
-export default function SourceHistoryPanel({ sample, sessions, qualityMeasures }) {
+export default function SourceHistoryPanel({ sample, qualityMeasures }) {
   const { locale, dateLocale, t } = useLanguage()
   const timeline = useMemo(
-    () => buildSourceTimeline(sample, sessions, dateLocale),
-    [sample, sessions, dateLocale],
+    () => buildSourceTimeline(sample, dateLocale),
+    [sample, dateLocale],
   )
   const lastRecording = timeline[0]
   const previousTests = timeline.slice(1)
@@ -85,7 +85,7 @@ export default function SourceHistoryPanel({ sample, sessions, qualityMeasures }
           >
             <div className="source-last-card-meta">
               <span className="source-last-card-session">
-                {sessionName({ id: lastRecording.sessionId, label: lastRecording.sessionName }, t)}
+                {lastRecording.dateLabel}
               </span>
               {lastRecording.rainfallMm72h != null && (
                 <span className="source-last-card-rain">
@@ -175,7 +175,7 @@ export default function SourceHistoryPanel({ sample, sessions, qualityMeasures }
                     )}
                   </div>
                   <p className="source-history-event-session">
-                    {sessionName({ id: entry.sessionId, label: entry.sessionName }, t)}
+                    {entry.dateLabel}
                   </p>
 
                   {isFocused ? (

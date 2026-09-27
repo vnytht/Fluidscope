@@ -1,4 +1,5 @@
 import { evaluateReading, getMeasureScale } from './qualityBands'
+import { formatLisbonDate, formatLisbonDateTime } from './lisbonTime'
 
 /** Hypothetical past tests for prototype demos — keyed by sample id. */
 const MOCK_HISTORY_BY_SAMPLE = {
@@ -76,42 +77,22 @@ const MOCK_HISTORY_BY_SAMPLE = {
   ],
 }
 
-const EXTRA_SESSIONS = [
-  { id: 'session-mock-0', label: 'Autumn walk — 2 Nov 2025' },
-  { id: 'session-mock-1', label: 'Spring check — 18 Mar 2026' },
-  { id: 'session-mock-2', label: 'Dry spell — 3 May 2026' },
-]
-
-function formatDateLabel(iso, dateLocale = 'en-GB') {
-  return new Date(iso).toLocaleDateString(dateLocale, {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  })
-}
-
 function formatDateShort(iso, dateLocale = 'en-GB') {
-  return new Date(iso).toLocaleDateString(dateLocale, { day: 'numeric', month: 'short' })
+  return formatLisbonDate(iso, dateLocale)
 }
 
-function sessionLabel(sessionId, sessions) {
-  const all = [...sessions, ...EXTRA_SESSIONS]
-  return all.find((s) => s.id === sessionId)?.label ?? 'Field session'
-}
-
-function buildEntry(raw, sessions, dateLocale) {
+function buildEntry(raw, dateLocale) {
   return {
     ...raw,
-    dateLabel: formatDateLabel(raw.testedAt, dateLocale),
+    dateLabel: formatLisbonDateTime(raw.testedAt, dateLocale),
     dateShort: formatDateShort(raw.testedAt, dateLocale),
-    sessionName: sessionLabel(raw.sessionId, sessions),
   }
 }
 
-export function buildSourceTimeline(sample, sessions = [], dateLocale = 'en-GB') {
+export function buildSourceTimeline(sample, dateLocale = 'en-GB') {
   const preset = MOCK_HISTORY_BY_SAMPLE[sample.id]
   if (preset) {
-    return preset.map((entry) => buildEntry(entry, sessions, dateLocale)).sort(
+    return preset.map((entry) => buildEntry(entry, dateLocale)).sort(
       (a, b) => new Date(b.testedAt) - new Date(a.testedAt),
     )
   }
@@ -121,13 +102,11 @@ export function buildSourceTimeline(sample, sessions = [], dateLocale = 'en-GB')
       {
         id: `${sample.id}-current`,
         testedAt: sample.createdAt ?? new Date().toISOString(),
-        sessionId: sample.sessionId,
         readings: sample.readings,
         hazards: sample.hazards ?? [],
         rainfallMm72h: null,
         isCurrent: true,
       },
-      sessions,
       dateLocale,
     ),
   ]

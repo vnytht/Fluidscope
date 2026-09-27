@@ -1,9 +1,18 @@
 import { SOURCE_TYPES } from '../../../lib/mockData'
-import { sourceTypeName } from '../../../lib/i18n'
+import { sourceTypeName, usageName } from '../../../lib/i18n'
+import {
+  SOURCE_USAGES,
+  allUsagesSelected,
+  asUsageList,
+  toggleAllUsages,
+  toggleUsage,
+} from '../../../lib/sourceUsage'
 import { useLanguage } from '../../../context/LanguageContext'
 
 export default function SourceTypeStep({ sourceType, onChange, details, onDetailsChange }) {
   const { locale, t } = useLanguage()
+  const usages = asUsageList(details.usages)
+  const allOn = allUsagesSelected(usages)
 
   function patch(partial) {
     onDetailsChange({ ...details, ...partial })
@@ -46,6 +55,30 @@ export default function SourceTypeStep({ sourceType, onChange, details, onDetail
           </label>
         </div>
       )}
+
+      <div className="source-extras">
+        <p className="source-extras-kicker">{t('source.usage')}</p>
+        <p className="flow-hint">{t('source.usageHint')}</p>
+        <div className="chip-grid">
+          <button
+            type="button"
+            className={`chip${allOn ? ' chip--selected' : ''}`}
+            onClick={() => patch({ usages: toggleAllUsages(usages) })}
+          >
+            {t('source.usage.selectAll')}
+          </button>
+          {SOURCE_USAGES.map((id) => (
+            <button
+              key={id}
+              type="button"
+              className={`chip${usages.includes(id) ? ' chip--selected' : ''}`}
+              onClick={() => patch({ usages: toggleUsage(usages, id) })}
+            >
+              {usageName(id, t)}
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   )
 }

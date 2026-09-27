@@ -5,18 +5,27 @@ import { placementPinIcon } from './markerIcons'
 
 // Pin stays on the map for the whole add flow. `editable` is only true on the
 // location step — after Continue it becomes a fixed preview until Back.
-export default function LocationPicker({ active, editable, location, onPick, panRequest }) {
+export default function LocationPicker({
+  active,
+  editable,
+  location,
+  onPick,
+  panRequest,
+  icon = placementPinIcon,
+  autoCenter = true,
+  tooltipPrefix = '',
+}) {
   const map = useMap()
   const dragging = useRef(false)
   const [placeLabel, setPlaceLabel] = useState('')
   const [labelLoading, setLabelLoading] = useState(false)
 
   useEffect(() => {
-    if (!editable) return
+    if (!editable || !autoCenter) return
     if (!location) {
       onPick([map.getCenter().lat, map.getCenter().lng])
     }
-  }, [editable, location, map, onPick])
+  }, [editable, autoCenter, location, map, onPick])
 
   useEffect(() => {
     if (editable && panRequest) {
@@ -60,7 +69,7 @@ export default function LocationPicker({ active, editable, location, onPick, pan
   return (
     <Marker
       position={location}
-      icon={placementPinIcon}
+      icon={icon}
       draggable={editable}
       zIndexOffset={1000}
       eventHandlers={
@@ -87,7 +96,7 @@ export default function LocationPicker({ active, editable, location, onPick, pan
       }
     >
       <Tooltip permanent direction="top" offset={[0, -42]} className="placement-pin-tooltip">
-        {tooltipText}
+        {tooltipPrefix ? `${tooltipPrefix} · ${tooltipText}` : tooltipText}
       </Tooltip>
     </Marker>
   )

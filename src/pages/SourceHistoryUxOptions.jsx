@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { SEED_SAMPLES, SEED_SESSIONS, DEFAULT_QUALITY_MEASURES } from '../lib/mockData'
+import { SEED_SAMPLES, DEFAULT_QUALITY_MEASURES } from '../lib/mockData'
 import { buildSourceTimeline, lastRecordingSummary } from '../lib/sourceHistory'
 import { SOURCE_TYPE_LABELS } from '../lib/sourceTypeLabels'
 import SourceHistoryPanel from '../components/source/SourceHistoryPanel'
@@ -81,7 +81,6 @@ function HistoryView({ onBack, title = 'Test history' }) {
       <div className="ux-drawer-body ux-drawer-body--scroll">
         <SourceHistoryPanel
           sample={SAMPLE}
-          sessions={SEED_SESSIONS}
           qualityMeasures={DEFAULT_QUALITY_MEASURES}
         />
       </div>
@@ -92,7 +91,7 @@ function HistoryView({ onBack, title = 'Test history' }) {
 function OptionA() {
   const [view, setView] = useState('main')
   const summary = useMemo(
-    () => lastRecordingSummary(buildSourceTimeline(SAMPLE, SEED_SESSIONS)),
+    () => lastRecordingSummary(buildSourceTimeline(SAMPLE)),
     [],
   )
 
@@ -126,7 +125,7 @@ function OptionA() {
 function OptionB() {
   const [view, setView] = useState('main')
   const summary = useMemo(
-    () => lastRecordingSummary(buildSourceTimeline(SAMPLE, SEED_SESSIONS)),
+    () => lastRecordingSummary(buildSourceTimeline(SAMPLE)),
     [],
   )
 
@@ -168,7 +167,7 @@ function OptionB() {
 function OptionC() {
   const [view, setView] = useState('main')
   const summary = useMemo(
-    () => lastRecordingSummary(buildSourceTimeline(SAMPLE, SEED_SESSIONS)),
+    () => lastRecordingSummary(buildSourceTimeline(SAMPLE)),
     [],
   )
 
@@ -254,7 +253,6 @@ function OptionD() {
         <div className="ux-drawer-body ux-drawer-body--scroll">
           <SourceHistoryPanel
             sample={SAMPLE}
-            sessions={SEED_SESSIONS}
             qualityMeasures={DEFAULT_QUALITY_MEASURES}
           />
         </div>

@@ -40,7 +40,8 @@ export const SEED_SAMPLES = [
     position: [41.706, -8.79],
     sourceType: 'Dug well',
     readings: [{ measureId: 'nitrate', value: '25' }, { measureId: 'ph', value: '5.5' }],
-    hazards: ['septic', 'agriculture'],
+    hazards: [],
+    usages: ['drinking', 'dishes', 'laundry'],
     createdAt: '2026-07-12T10:15:00Z',
   },
   {
@@ -128,8 +129,32 @@ export const SEED_SAMPLES = [
     position: [41.712, -8.822],
     sourceType: 'Spring',
     readings: [{ measureId: 'ph', value: '7' }],
-    hazards: ['eucalyptus'],
+    hazards: [],
     createdAt: '2025-11-02T08:55:00Z',
+  },
+]
+
+export const SEED_MAP_HAZARDS = [
+  {
+    id: 'hazard-1',
+    typeId: 'septic',
+    activity: 'active',
+    position: [41.709, -8.786],
+    createdAt: '2026-07-12T10:20:00Z',
+  },
+  {
+    id: 'hazard-2',
+    typeId: 'agriculture',
+    activity: 'passive',
+    position: [41.702, -8.796],
+    createdAt: '2026-07-12T10:21:00Z',
+  },
+  {
+    id: 'hazard-3',
+    typeId: 'eucalyptus',
+    activity: 'passive',
+    position: [41.715, -8.818],
+    createdAt: '2025-11-02T08:56:00Z',
   },
 ]
 

@@ -1,0 +1,117 @@
+.profile-btn {
+  position: absolute;
+  top: calc(10px + var(--ws-safe-top));
+  right: calc(60px + var(--ws-safe-right));
+  z-index: 1400;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--ws-line) 85%, transparent);
+  background: color-mix(in srgb, var(--ws-surface) 94%, transparent);
+  color: var(--ws-ink);
+  box-shadow: var(--ws-shadow-sm);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  display: grid;
+  place-items: center;
+}
+
+.profile-sheet {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: calc(16px + var(--ws-safe-bottom));
+  z-index: 1600;
+  max-height: 72vh;
+  overflow: auto;
+  padding: 20px 20px 18px;
+  border-radius: var(--ws-radius-lg);
+  border: 1px solid var(--ws-line);
+  background: var(--ws-surface);
+  box-shadow: var(--ws-shadow);
+}
+
+.profile-sheet-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.profile-kicker {
+  margin: 0 0 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ws-ink-muted);
+}
+
+.profile-sheet h2 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.profile-email {
+  margin: 4px 0 0;
+  color: var(--ws-ink-soft);
+  font-size: 0.9rem;
+}
+
+.profile-close {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: var(--ws-surface-alt);
+  color: var(--ws-ink);
+  display: grid;
+  place-items: center;
+}
+
+.profile-activity h3 {
+  margin: 0 0 4px;
+  font-size: 0.95rem;
+}
+
+.profile-hint,
+.profile-empty {
+  margin: 0 0 10px;
+  color: var(--ws-ink-muted);
+  font-size: 0.78rem;
+}
+
+.profile-activity ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.profile-activity li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px solid var(--ws-line);
+  font-size: 0.82rem;
+}
+
+.profile-activity time {
+  color: var(--ws-ink-muted);
+  white-space: nowrap;
+}
+
+.profile-logout {
+  width: 100%;
+  margin-top: 16px;
+  min-height: var(--ws-touch);
+  border: none;
+  border-radius: var(--ws-radius-pill);
+  background: var(--ws-ink);
+  color: white;
+  font-weight: 600;
+}

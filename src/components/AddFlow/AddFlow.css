@@ -628,6 +628,50 @@
   color: var(--ws-ink-soft);
 }
 
+.hazard-places {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--ws-line);
+}
+
+.hazard-place-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  margin-top: 8px;
+  border: 1px solid var(--ws-line);
+  border-radius: var(--ws-radius-sm);
+  background: var(--ws-surface-alt);
+}
+
+.hazard-place-row--placing {
+  border-color: var(--ws-amber);
+  background: var(--ws-amber-tint);
+}
+
+.hazard-place-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.hazard-place-copy strong {
+  font-size: 0.9rem;
+}
+
+.hazard-place-copy span {
+  font-size: 0.75rem;
+  color: var(--ws-ink-soft);
+  line-height: 1.35;
+}
+
+.hazard-place-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .hazard-group-body {
   padding: 10px 12px 12px;
   border-top: 1px solid var(--ws-line);

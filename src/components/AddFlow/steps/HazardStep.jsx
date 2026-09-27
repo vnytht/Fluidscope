@@ -1,9 +1,16 @@
 import { useState } from 'react'
-import { hazardsByActivity } from '../../../lib/hazards'
+import { HAZARD_TYPES, hazardsByActivity } from '../../../lib/hazards'
 import { hazardName } from '../../../lib/i18n'
 import { useLanguage } from '../../../context/LanguageContext'
 
-export default function HazardStep({ value, onChange }) {
+export default function HazardStep({
+  value,
+  places,
+  placingId,
+  onChange,
+  onPlace,
+  onClearPlace,
+}) {
   const { locale, t } = useLanguage()
   const selected = value ?? []
   const noneKnown = value !== null && selected.length === 0
@@ -12,11 +19,13 @@ export default function HazardStep({ value, onChange }) {
   function toggleType(id) {
     const next = selected.includes(id) ? selected.filter((h) => h !== id) : [...selected, id]
     onChange(next)
+    if (selected.includes(id)) onClearPlace?.(id)
   }
 
   function chooseNone() {
     onChange([])
     setExpandedGroup(null)
+    selected.forEach((id) => onClearPlace?.(id))
   }
 
   function groupSummary(activity) {
@@ -98,12 +107,39 @@ export default function HazardStep({ value, onChange }) {
       </div>
 
       {selected.length > 0 && (
-        <p className="hazard-summary">
-          {t(selected.length === 1 ? 'hazard.summaryOne' : 'hazard.summary', {
-            count: selected.length,
-            list: selected.map((id) => hazardName(id, locale)).join(', '),
+        <div className="hazard-places">
+          <p className="source-extras-kicker">{t('hazard.placeTitle')}</p>
+          <p className="flow-hint">{t('hazard.placeHint')}</p>
+          {selected.map((id) => {
+            const placed = Boolean(places?.[id])
+            const placing = placingId === id
+            const meta = HAZARD_TYPES.find((item) => item.id === id)
+            return (
+              <div key={id} className={`hazard-place-row${placing ? ' hazard-place-row--placing' : ''}`}>
+                <div className="hazard-place-copy">
+                  <strong>{hazardName(id, locale)}</strong>
+                  <span>
+                    {placing
+                      ? t('hazard.placing', { name: hazardName(id, locale) })
+                      : placed
+                        ? t('hazard.placed')
+                        : t('hazard.notPlaced')}
+                  </span>
+                </div>
+                <div className="hazard-place-actions">
+                  <button type="button" className="btn-secondary" onClick={() => onPlace?.(id, meta?.activity)}>
+                    {placed ? t('hazard.move') : t('hazard.place')}
+                  </button>
+                  {placed && (
+                    <button type="button" className="btn-ghost" onClick={() => onClearPlace?.(id)}>
+                      {t('hazard.clearPlace')}
+                    </button>
+                  )}
+                </div>
+              </div>
+            )
           })}
-        </p>
+        </div>
       )}
     </div>
   )

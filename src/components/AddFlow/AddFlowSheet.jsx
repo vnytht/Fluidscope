@@ -5,6 +5,7 @@ import SourceTypeStep from './steps/SourceTypeStep'
 import QualityStep from './steps/QualityStep'
 import HazardStep from './steps/HazardStep'
 import ReviewStep from './steps/ReviewStep'
+import { HAZARD_TYPES } from '../../lib/hazards'
 import { IconClose } from '../ui/Icons'
 import { useLanguage } from '../../context/LanguageContext'
 import './AddFlow.css'
@@ -22,6 +23,7 @@ function emptySourceDetails() {
     runsDry: '',
     sampledAt: todayDate(),
     recentRain: '',
+    usages: [],
   }
 }
 export default function AddFlowSheet({
@@ -30,17 +32,22 @@ export default function AddFlowSheet({
   location,
   onLocationChange,
   onPanRequest,
+  hazardPlaces = {},
+  placingHazardId,
+  onHazardPlacesChange,
+  onPlacingHazardChange,
   onClose,
   onStepChange,
   onSaved,
 }) {
   const { t } = useLanguage()
-  const { qualityMeasures, addQualityMeasure, addSample, updateSample } = useAppState()
+  const { qualityMeasures, addQualityMeasure, addSample, addMapHazards, updateSample } = useAppState()
   const [stepIndex, setStepIndex] = useState(0)
   const [sourceType, setSourceType] = useState(null)
   const [sourceDetails, setSourceDetails] = useState(emptySourceDetails)
   const [readings, setReadings] = useState([])
   const [hazards, setHazards] = useState(null)
+  const [saving, setSaving] = useState(false)
 
   const isEdit = Boolean(editSampleId)
   const step = STEPS[stepIndex]
@@ -58,6 +65,7 @@ export default function AddFlowSheet({
       runsDry: initialData.runsDry ?? '',
       sampledAt: initialData.sampledAt ? String(initialData.sampledAt).slice(0, 10) : todayDate(),
       recentRain: initialData.recentRain ?? '',
+      usages: initialData.usages ?? [],
     })
     setReadings(initialData.readings)
     setHazards(initialData.hazards ?? [])
@@ -81,8 +89,9 @@ export default function AddFlowSheet({
     if (index >= 0) setStepIndex(index)
   }
 
-  function handleNext() {
-    if (!canAdvance) return
+  async function handleNext() {
+    if (!canAdvance || saving) return
+    if (step === 'hazard') onPlacingHazardChange?.(null)
     if (isLast) {
       const depth = Number.parseFloat(sourceDetails.depthMeters)
       const payload = {
@@ -91,21 +100,38 @@ export default function AddFlowSheet({
         depthMeters:
           sourceType === 'Dug well' && Number.isFinite(depth) && depth >= 0 ? depth : null,
         readings,
-        hazards: hazards ?? [],
+        hazards: [],
+        usages: sourceDetails.usages ?? [],
       }
-      if (isEdit) {
-        updateSample(editSampleId, payload)
-        onSaved?.(editSampleId)
-      } else {
-        addSample(payload)
+      const placedHazards = (hazards ?? [])
+        .map((typeId) => {
+          const position = hazardPlaces?.[typeId]
+          if (!position) return null
+          const meta = HAZARD_TYPES.find((item) => item.id === typeId)
+          return { typeId, activity: meta?.activity ?? 'passive', position }
+        })
+        .filter(Boolean)
+      setSaving(true)
+      try {
+        await addMapHazards(placedHazards)
+        if (isEdit) {
+          await updateSample(editSampleId, payload)
+          onSaved?.(editSampleId)
+        } else {
+          const created = await addSample(payload)
+          onSaved?.(created.id)
+        }
+        onClose()
+      } finally {
+        setSaving(false)
       }
-      onClose()
       return
     }
     setStepIndex((i) => i + 1)
   }
 
   function handleBack() {
+    onPlacingHazardChange?.(null)
     if (isFirst) {
       onClose()
       return
@@ -159,7 +185,30 @@ export default function AddFlowSheet({
           />
         </div>
         <div hidden={step !== 'hazard'}>
-          <HazardStep value={hazards} onChange={setHazards} />
+          <HazardStep
+            value={hazards}
+            places={hazardPlaces}
+            placingId={placingHazardId}
+            onChange={setHazards}
+            onPlace={(typeId) => {
+              const current = hazardPlaces?.[typeId]
+              const fallback = location
+                ? [location[0] + 0.004, location[1] + 0.003]
+                : null
+              const next = current ?? fallback
+              if (next) {
+                onHazardPlacesChange?.({ ...hazardPlaces, [typeId]: next })
+                onPanRequest?.(next)
+              }
+              onPlacingHazardChange?.(typeId)
+            }}
+            onClearPlace={(typeId) => {
+              const next = { ...hazardPlaces }
+              delete next[typeId]
+              onHazardPlacesChange?.(next)
+              if (placingHazardId === typeId) onPlacingHazardChange?.(null)
+            }}
+          />
         </div>
         <div hidden={step !== 'review'}>
           <ReviewStep
@@ -168,6 +217,7 @@ export default function AddFlowSheet({
             sourceDetails={sourceDetails}
             readings={readings}
             hazards={hazards ?? []}
+            hazardPlaces={hazardPlaces}
             qualityMeasures={qualityMeasures}
             onEdit={goToStep}
           />
@@ -178,8 +228,12 @@ export default function AddFlowSheet({
         <button type="button" className="btn-ghost" onClick={handleBack}>
           {isFirst ? t('flow.cancel') : t('flow.back')}
         </button>
-        <button type="button" className="btn-primary" onClick={handleNext} disabled={!canAdvance}>
-          {step === 'review' ? (isEdit ? t('flow.save') : t('flow.submit')) : t('flow.continue')}
+        <button type="button" className="btn-primary" onClick={handleNext} disabled={!canAdvance || saving}>
+          {saving
+            ? t('flow.saving')
+            : step === 'review'
+              ? (isEdit ? t('flow.save') : t('flow.submit'))
+              : t('flow.continue')}
         </button>
       </div>
     </div>

@@ -1,7 +1,8 @@
 import { formatCoords } from '../../../lib/mapConfig'
 import { evaluateReading, PUBLIC_INFO_LINKS } from '../../../lib/qualityBands'
 import { formatReadingDisplay } from '../../../lib/readings'
-import { hazardName, measureName, sourceTypeName } from '../../../lib/i18n'
+import { hazardName, measureName, sourceTypeName, usageName } from '../../../lib/i18n'
+import { asUsageList } from '../../../lib/sourceUsage'
 import { useLanguage } from '../../../context/LanguageContext'
 import { IconAlert, IconBeaker, IconMapPin } from '../../ui/Icons'
 
@@ -11,6 +12,7 @@ export default function ReviewStep({
   sourceDetails,
   readings,
   hazards,
+  hazardPlaces,
   qualityMeasures,
   onEdit,
 }) {
@@ -35,10 +37,19 @@ export default function ReviewStep({
     }
   })
   const unsafeReadings = rows.filter((r) => r.safe === false)
+  const usageIds = asUsageList(sourceDetails?.usages)
+  const usageLine = usageIds.length
+    ? usageIds.map((id) => usageName(id, t)).join(', ')
+    : t('review.usageNone')
   const hazardsLine =
     hazards.length === 0
       ? t('review.noneReported')
-      : hazards.map((id) => hazardName(id, locale)).join(', ')
+      : hazards
+          .map((id) => {
+            const name = hazardName(id, locale)
+            return hazardPlaces?.[id] ? t('review.hazardPlaced', { name }) : t('review.hazardUnplaced', { name })
+          })
+          .join(', ')
 
   return (
     <div className="flow-step review-step">
@@ -117,6 +128,16 @@ export default function ReviewStep({
             </button>
           </div>
         )}
+
+        <div className="review-row">
+          <div className="review-row-copy">
+            <span className="review-row-label">{t('review.usage')}</span>
+            <span className="review-row-value">{usageLine}</span>
+          </div>
+          <button type="button" className="review-row-edit" onClick={() => onEdit('sourceType')}>
+            {t('review.edit')}
+          </button>
+        </div>
 
         <div className="review-row review-row--readings">
           <div className="review-row-copy">

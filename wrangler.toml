@@ -1,0 +1,16 @@
+name = "waterscope"
+main = "worker/index.js"
+compatibility_date = "2026-09-01"
+
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "waterscope"
+database_id = "4e2439fd-8432-4429-b903-dae732351764"
+
+[vars]
+STAFF_EMAILS = "vinaythorat@berkeley.edu,hilamor@berkeley.edu"

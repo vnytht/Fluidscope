@@ -1,0 +1,16 @@
+.hazard-detail-sheet {
+  height: auto;
+  max-height: 68vh;
+}
+
+.hazard-detail-body {
+  padding: 8px 20px 24px;
+  overflow-y: auto;
+}
+
+.hazard-detail-note {
+  margin: 16px 0 0;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--ws-ink-muted);
+}

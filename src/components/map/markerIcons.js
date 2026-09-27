@@ -66,3 +66,19 @@ export const placementPinIcon = L.divIcon({
   iconSize: [34, 40],
   iconAnchor: [17, 40],
 })
+
+const HAZARD_PIN_SVG = `<svg class="ws-hazard-pin" viewBox="0 0 28 28" aria-hidden="true"><polygon points="14,2 26,25 2,25" fill="#E7B137" stroke="#fff" stroke-width="2.4" stroke-linejoin="round"/><rect x="12.6" y="10" width="2.8" height="8" rx="1.2" fill="#1E2A30"/><circle cx="14" cy="21.2" r="1.5" fill="#1E2A30"/></svg>`
+
+export const standaloneHazardIcon = L.divIcon({
+  className: 'ws-marker ws-marker--hazard',
+  html: HAZARD_PIN_SVG,
+  iconSize: [28, 28],
+  iconAnchor: [14, 25],
+})
+
+export const hazardPlacementIcon = L.divIcon({
+  className: 'ws-marker ws-marker--placement ws-marker--hazard-place',
+  html: HAZARD_PIN_SVG,
+  iconSize: [32, 32],
+  iconAnchor: [16, 28],
+})

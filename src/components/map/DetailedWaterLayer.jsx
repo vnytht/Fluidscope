@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
-import { GeoJSON, Pane } from 'react-leaflet'
+import { GeoJSON, Pane, useMap } from 'react-leaflet'
 import { getBasinsBbox } from '../../lib/hydrology'
+import { buildArrowCollection } from '../../lib/streamArrows'
 
 const DATA_BASE = `${import.meta.env.BASE_URL}data/`
 
@@ -79,6 +80,50 @@ function apaRiverHaloStyle(feature, emphasized) {
     lineCap: 'round',
     lineJoin: 'round',
   }
+}
+
+function StreamArrows({ rivers }) {
+  const map = useMap()
+  const [zoom, setZoom] = useState(() => map.getZoom())
+
+  useEffect(() => {
+    const onZoom = () => setZoom(map.getZoom())
+    map.on('zoomend', onZoom)
+    return () => map.off('zoomend', onZoom)
+  }, [map])
+
+  const minOrder = zoom < 11 ? 3 : 1
+  const arrows = useMemo(
+    () =>
+      buildArrowCollection(rivers, zoom, {
+        minOrder,
+        maxPerLine: zoom < 13 ? 10 : 16,
+        spacingScale: zoom < 12 ? 3.1 : 2.6,
+        size: zoom < 13 ? 0.003 : 0.0052,
+      }),
+    [rivers, zoom, minOrder],
+  )
+
+  if (!arrows.features.length) return null
+
+  return (
+    <Pane name="official-waterway-arrows" style={{ zIndex: 328 }}>
+      <GeoJSON
+        key={`stream-arrows-${arrows.features.length}-${zoom}`}
+        data={arrows}
+        style={{
+          color: '#4F86C6',
+          weight: 0.8,
+          opacity: 1,
+          fill: true,
+          fillColor: '#4F86C6',
+          fillOpacity: 1,
+          lineJoin: 'round',
+        }}
+        interactive={false}
+      />
+    </Pane>
+  )
 }
 
 function apaRiverStyle(feature, emphasized) {
@@ -194,6 +239,7 @@ export default function DetailedWaterLayer({ active, basinIds, emphasized = fals
           />
         )}
       </Pane>
+      {clippedRivers && <StreamArrows rivers={clippedRivers} />}
     </>
   )
 }

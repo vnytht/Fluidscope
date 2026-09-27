@@ -11,7 +11,6 @@ export const DEFAULT_FILTERS = {
   dateTo: '',
   timeFrom: '',
   timeTo: '',
-  sessionId: 'all',
 }
 
 export const SEASONS = ['winter', 'spring', 'summer', 'autumn']
@@ -145,9 +144,6 @@ function matchesHazards(sample, hazards) {
 export function sampleMatchesFilters(sample, filters) {
   const sourceTypes = asFilterList(filters.sourceType)
   if (sourceTypes.length && !sourceTypes.includes(sample.sourceType)) return false
-  if (filters.sessionId !== 'all' && filters.sessionId && sample.sessionId !== filters.sessionId) {
-    return false
-  }
   if (!matchesContamination(sample, filters.contamination)) return false
   if (!matchesHazards(sample, filters.hazards)) return false
 
@@ -164,6 +160,14 @@ export function applyFilters(samples, filters) {
   return samples.filter((sample) => sampleMatchesFilters(sample, filters))
 }
 
+export function applyHazardFilters(hazards, filters) {
+  const selected = asFilterList(filters.hazards)
+  if (!selected.length) return hazards
+  if (selected.includes('none')) return []
+  if (selected.includes('any')) return hazards
+  return hazards.filter((hazard) => selected.includes(hazard.typeId))
+}
+
 export function countActiveFilters(filters) {
   let count = 0
   count += asFilterList(filters.sourceType).length
@@ -172,7 +176,6 @@ export function countActiveFilters(filters) {
   count += asFilterList(filters.season).length
   if (filters.dateFrom || filters.dateTo) count += 1
   if (filters.timeFrom || filters.timeTo) count += 1
-  if (filters.sessionId && filters.sessionId !== 'all') count += 1
   return count
 }
 

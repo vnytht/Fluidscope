@@ -62,7 +62,24 @@
   border: 1px solid var(--ws-line-strong);
   background: var(--ws-surface);
   color: var(--ws-ink);
+  caret-color: var(--ws-ink);
+  -webkit-text-fill-color: var(--ws-ink);
   font-size: 0.95rem;
+}
+
+.login-card input::placeholder {
+  color: var(--ws-ink-muted);
+  -webkit-text-fill-color: var(--ws-ink-muted);
+  opacity: 1;
+}
+
+.login-card input:-webkit-autofill,
+.login-card input:-webkit-autofill:hover,
+.login-card input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--ws-ink);
+  caret-color: var(--ws-ink);
+  box-shadow: 0 0 0 1000px var(--ws-surface) inset;
+  transition: background-color 9999s ease-out;
 }
 
 .login-card input:focus {
@@ -87,8 +104,102 @@
   background: var(--ws-ink);
 }
 
+.login-submit:disabled {
+  opacity: 0.6;
+}
+
+.login-modes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin: 0 0 18px;
+  padding: 4px;
+  border-radius: var(--ws-radius-pill);
+  background: var(--ws-surface-alt);
+}
+
+.login-modes button {
+  min-height: 36px;
+  border: none;
+  border-radius: var(--ws-radius-pill);
+  background: transparent;
+  color: var(--ws-ink-soft);
+  font-weight: 650;
+  font-size: 0.82rem;
+}
+
+.login-modes button.is-active {
+  background: var(--ws-surface);
+  color: var(--ws-ink);
+  box-shadow: var(--ws-shadow-sm);
+}
+
+.login-error,
+.login-notice {
+  margin: 0;
+  font-size: 0.8rem;
+}
+
+.login-error {
+  color: #b42318;
+}
+
+.login-notice {
+  color: var(--ws-accent);
+}
+
+.login-link {
+  margin-top: 14px;
+  border: none;
+  background: none;
+  color: var(--ws-accent);
+  font-weight: 650;
+  font-size: 0.82rem;
+}
+
 .login-note {
   margin: 18px 0 0;
   font-size: 0.72rem;
   color: var(--ws-ink-muted);
+}
+
+.login-privacy-check {
+  flex-direction: row !important;
+  align-items: flex-start;
+  gap: 10px;
+  font-weight: 500 !important;
+  color: var(--ws-ink) !important;
+}
+
+.login-privacy-check input {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.login-inline-link {
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--ws-accent);
+  font: inherit;
+  font-weight: 650;
+  text-decoration: underline;
+}
+
+.login-privacy-body {
+  text-align: left;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--ws-ink-soft);
+}
+
+.login-card--privacy {
+  text-align: left;
+}
+
+.login-card--privacy h1 {
+  font-size: 22px;
 }

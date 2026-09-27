@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { SOURCE_TYPE_LABELS } from '../../lib/sourceTypeLabels'
 import { sampleHasHazard } from '../../lib/hazards'
-import { hazardName, measureName, sourceTypeName } from '../../lib/i18n'
+import { hazardName, measureName, sourceTypeName, usageName } from '../../lib/i18n'
+import { asUsageList } from '../../lib/sourceUsage'
 import { useLanguage } from '../../context/LanguageContext'
 import { formatReadingDisplay } from '../../lib/readings'
 import { evaluateReading } from '../../lib/qualityBands'
@@ -24,31 +25,33 @@ export default function SourceDetailSheet({
   relatedSamples,
   impactAnalysis,
   qualityMeasures,
-  sessions,
+  canEdit = false,
   onClose,
   onEdit,
+  onDelete,
 }) {
   const { locale, t } = useLanguage()
   const [chatOpen, setChatOpen] = useState(false)
   const [tab, setTab] = useState('details')
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const typeLabels = SOURCE_TYPE_LABELS[sample.sourceType]
   const catchment = getCatchment(sample.catchmentId)
   const apa = sample.apa ?? impactAnalysis?.apa?.assignment ?? null
   const communitySources = [sample, ...relatedSamples]
+  const usageLine = asUsageList(sample.usages)
+    .map((id) => usageName(id, t))
+    .join(', ')
   const hazardsLine = sampleHasHazard(sample)
     ? sample.hazards.map((id) => hazardName(id, locale)).join(', ')
     : null
 
-  const apaLooksCoded = Boolean(apa?.name && /^(CWB-|PT0)|-WB/i.test(apa.name))
-  const apaTitle = apaLooksCoded && apa.subBasin ? apa.subBasin : apa?.name
-  const communityLabel = apaTitle || apa?.name || shortCatchmentName(catchment.name)
   const communityColor = APA_BASIN_COLORS[apa?.basinName] ?? catchment.color
-  const townName = getChatTown(sample.townId)?.name || communityLabel
+  const townName = getChatTown(sample.townId)?.name || shortCatchmentName(catchment.name)
   const sourceCountLabel =
     communitySources.length === 1
       ? t('detail.linkedOne')
       : t('detail.linkedMany', { count: communitySources.length })
-  const sameBasinCount = impactAnalysis?.sameBasinSamples.length ?? 0
   useEffect(() => {
     setTab('details')
     setChatOpen(false)
@@ -138,6 +141,14 @@ export default function SourceDetailSheet({
                   </div>
                 </div>
               )}
+              {usageLine && (
+                <div className="source-detail-row">
+                  <div className="source-detail-row-text">
+                    <span className="source-detail-row-label">{t('detail.usage')}</span>
+                    <span className="source-detail-row-value">{usageLine}</span>
+                  </div>
+                </div>
+              )}
               {sample.runsDry && (
                 <div className="source-detail-row">
                   <div className="source-detail-row-text">
@@ -212,30 +223,6 @@ export default function SourceDetailSheet({
               )}
             </div>
 
-            {apa ? (
-              <section className="impact-card" aria-label={t('detail.catchment')}>
-                <div className="impact-card__head">
-                  <div>
-                    <p className="impact-card__eyebrow">{t('detail.apaBasin', { name: apa.basinName })}</p>
-                    <h3>{apaTitle}</h3>
-                    {apaLooksCoded && apa.subBasin && (
-                      <p className="impact-card__code">{apa.name}</p>
-                    )}
-                  </div>
-                  <p className="impact-card__neighbours">
-                    {sameBasinCount === 1
-                      ? t('detail.neighbourOne')
-                      : t('detail.neighbours', { count: sameBasinCount })}
-                  </p>
-                </div>
-                <p className="impact-card__note">{t('detail.catchmentNote')}</p>
-              </section>
-            ) : (
-              <section className="impact-card impact-card--unmapped">
-                {t('detail.unmapped')}
-              </section>
-            )}
-
             <button
               type="button"
               className="source-detail-community-row"
@@ -267,18 +254,55 @@ export default function SourceDetailSheet({
           >
             <SourceHistoryPanel
               sample={sample}
-              sessions={sessions}
               qualityMeasures={qualityMeasures}
             />
           </div>
         </div>
       </div>
 
-      {tab === 'details' && (
+      {tab === 'details' && canEdit && (
         <div className="flow-sheet-footer source-detail-footer">
-          <button type="button" className="btn-outline source-detail-edit" onClick={onEdit}>
-            {t('detail.edit')}
-          </button>
+          {!confirmDelete ? (
+            <>
+              <button type="button" className="btn-outline source-detail-edit" onClick={onEdit}>
+                {t('detail.edit')}
+              </button>
+              <button
+                type="button"
+                className="btn-outline source-detail-delete"
+                onClick={() => setConfirmDelete(true)}
+              >
+                {t('detail.delete')}
+              </button>
+            </>
+          ) : (
+            <>
+              <p className="source-detail-delete-warn">{t('detail.deleteConfirm')}</p>
+              <button
+                type="button"
+                className="btn-outline source-detail-delete"
+                disabled={deleting}
+                onClick={async () => {
+                  setDeleting(true)
+                  try {
+                    await onDelete?.()
+                  } finally {
+                    setDeleting(false)
+                  }
+                }}
+              >
+                {deleting ? t('detail.deleting') : t('detail.deleteYes')}
+              </button>
+              <button
+                type="button"
+                className="btn-outline source-detail-edit"
+                disabled={deleting}
+                onClick={() => setConfirmDelete(false)}
+              >
+                {t('detail.deleteNo')}
+              </button>
+            </>
+          )}
         </div>
       )}
     </div>

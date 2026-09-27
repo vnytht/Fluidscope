@@ -4,7 +4,13 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "node scripts/dev.mjs",
+    "dev:web": "vite",
+    "dev:api": "wrangler dev --config wrangler.dev.toml --port 8787 --persist-to .wrangler/state",
+    "d1:migrate": "wrangler d1 migrations apply waterscope --local --config wrangler.dev.toml --persist-to .wrangler/state",
+    "d1:migrate:remote": "wrangler d1 migrations apply waterscope --remote",
+    "test:api": "node scripts/smoke-api.mjs",
+    "ship": "npm run lint && npm run test:api && npm run build && wrangler deploy",
     "build": "vite build",
     "lint": "oxlint",
     "data:hydrology": "python3 scripts/enrich_hydrorivers.py",
@@ -22,6 +28,7 @@
     "@types/react-dom": "^19.2.4",
     "@vitejs/plugin-react": "^6.1.0",
     "oxlint": "^1.79.0",
-    "vite": "^8.2.2"
+    "vite": "^8.2.2",
+    "wrangler": "^4.142.0"
   }
 }

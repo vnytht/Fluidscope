@@ -3,11 +3,14 @@ import { AppStateProvider, useAppState } from './context/AppStateContext'
 import { LanguageProvider, useLanguage } from './context/LanguageContext'
 import LanguageToggle from './components/ui/LanguageToggle'
 import LoginScreen from './components/auth/LoginScreen'
+import ProfileSheet from './components/auth/ProfileSheet'
 import WatershedMap from './components/WatershedMap'
 import LocationPicker from './components/map/LocationPicker'
 import SampleMarkers from './components/map/SampleMarkers'
+import HazardMarkers from './components/map/HazardMarkers'
 import AddFlowSheet from './components/AddFlow/AddFlowSheet'
 import SourceDetailSheet from './components/source/SourceDetailSheet'
+import HazardDetailSheet from './components/source/HazardDetailSheet'
 import FilterBar from './components/FilterBar'
 import ChatPanel from './components/chat/ChatPanel'
 import HydrologyLayer from './components/map/HydrologyLayer'
@@ -17,11 +20,14 @@ import BasinLayers from './components/map/BasinLayers'
 import MapLayersControl from './components/map/MapLayersControl'
 import SourceHistoryUxOptions from './pages/SourceHistoryUxOptions'
 import FlowVizOptions from './pages/FlowVizOptions'
-import { IconChat, IconPlus } from './components/ui/Icons'
+import StreamFlowLab from './pages/StreamFlowLab'
+import AppStreamsDirection from './pages/AppStreamsDirection'
+import { IconChat, IconPlus, IconUser } from './components/ui/Icons'
 import { analyzeDownstreamImpact } from './lib/hydrology'
 import { analyzeApaNeighbours } from './lib/apaCatchments'
-import { DEFAULT_FILTERS, applyFilters, isDefaultFilters } from './lib/filters'
+import { DEFAULT_FILTERS, applyFilters, applyHazardFilters, isDefaultFilters } from './lib/filters'
 import { DEFAULT_MAP_LAYERS } from './lib/mapLayers'
+import { hazardPlacementIcon } from './components/map/markerIcons'
 import './App.css'
 
 function useHashRoute() {
@@ -34,12 +40,23 @@ function useHashRoute() {
   return hash
 }
 
-// PROTOTYPE — throwaway UX-flow build. State is fake/in-memory
-// (AppStateContext), not a real backend. See src/context/AppStateContext.jsx.
+const SHOW_LABS = import.meta.env.DEV || import.meta.env.VITE_SHOW_LABS === 'true'
+
 function AppGate() {
   const { t } = useLanguage()
-  const { user, samples, sessions, qualityMeasures } = useAppState()
+  const {
+    user,
+    ready,
+    samples,
+    mapHazards,
+    qualityMeasures,
+    canEditSample,
+    canEditHazard,
+    deleteSample,
+    deleteMapHazard,
+  } = useAppState()
   const [flowActive, setFlowActive] = useState(true)
+  const [profileOpen, setProfileOpen] = useState(false)
   const [flowStep, setFlowStep] = useState('location')
   const [pendingLocation, setPendingLocation] = useState(null)
   const [editSampleId, setEditSampleId] = useState(null)
@@ -48,10 +65,25 @@ function AppGate() {
   const [mapLayers, setMapLayers] = useState(DEFAULT_MAP_LAYERS)
   const [chatOpen, setChatOpen] = useState(false)
   const [selectedSampleId, setSelectedSampleId] = useState(null)
+  const [selectedHazardId, setSelectedHazardId] = useState(null)
+  const [hazardPlaces, setHazardPlaces] = useState({})
+  const [placingHazardId, setPlacingHazardId] = useState(null)
 
   const filteredSamples = useMemo(() => applyFilters(samples, filters), [samples, filters])
+  const filteredHazards = useMemo(
+    () => applyHazardFilters(mapHazards, filters),
+    [mapHazards, filters],
+  )
+  const draftHazards = useMemo(
+    () =>
+      Object.entries(hazardPlaces)
+        .filter(([typeId, position]) => position && typeId !== placingHazardId)
+        .map(([typeId, position]) => ({ id: `draft-${typeId}`, typeId, position })),
+    [hazardPlaces, placingHazardId],
+  )
 
   const selectedSample = filteredSamples.find((s) => s.id === selectedSampleId) ?? null
+  const selectedHazard = mapHazards.find((h) => h.id === selectedHazardId) ?? null
   const impactAnalysis = useMemo(() => {
     if (!selectedSample) return null
     const hydro = analyzeDownstreamImpact(selectedSample, samples)
@@ -67,6 +99,15 @@ function AppGate() {
   const relatedSamples = impactAnalysis?.localBasinSamples ?? []
   const editingSample = editSampleId ? samples.find((s) => s.id === editSampleId) : null
   const showSourceDetail = Boolean(selectedSample && !flowActive && !chatOpen)
+  const showHazardDetail = Boolean(selectedHazard && !flowActive && !chatOpen && !showSourceDetail)
+
+  if (!ready) {
+    return (
+      <div className="login-screen">
+        <p className="login-note">{t('login.loading')}</p>
+      </div>
+    )
+  }
 
   if (!user) {
     return <LoginScreen />
@@ -76,6 +117,8 @@ function AppGate() {
     setFlowActive(false)
     setPendingLocation(null)
     setEditSampleId(null)
+    setHazardPlaces({})
+    setPlacingHazardId(null)
   }
 
   function openFlow() {
@@ -84,14 +127,33 @@ function AppGate() {
     setEditSampleId(null)
     setFlowActive(true)
     setSelectedSampleId(null)
+    setSelectedHazardId(null)
+    setHazardPlaces({})
+    setPlacingHazardId(null)
   }
 
   function startEdit(sample) {
+    if (!canEditSample(sample)) return
     setSelectedSampleId(null)
+    setSelectedHazardId(null)
     setEditSampleId(sample.id)
     setPendingLocation(sample.position)
     setFlowStep('location')
     setFlowActive(true)
+  }
+
+  function selectSample(id) {
+    setSelectedHazardId(null)
+    setSelectedSampleId(id)
+  }
+
+  function selectHazard(id) {
+    if (String(id).startsWith('draft-')) return
+    setSelectedSampleId(null)
+    setSelectedHazardId(id)
+    setChatOpen(false)
+    setProfileOpen(false)
+    closeFlow()
   }
 
   function closeChat() {
@@ -118,21 +180,38 @@ function AppGate() {
         <SampleMarkers
           samples={filteredSamples}
           selectedId={selectedSampleId}
-          onSelect={setSelectedSampleId}
+          onSelect={selectSample}
           impactAnalysis={impactAnalysis}
+        />
+        <HazardMarkers
+          hazards={[...filteredHazards, ...draftHazards]}
+          selectedId={selectedHazardId}
+          onSelect={selectHazard}
         />
         <LocationPicker
           active={flowActive}
           editable={flowActive && flowStep === 'location'}
           location={pendingLocation}
           onPick={setPendingLocation}
-          panRequest={panRequest}
+          panRequest={flowStep === 'location' ? panRequest : null}
+        />
+        <LocationPicker
+          active={flowActive && flowStep === 'hazard' && Boolean(placingHazardId && hazardPlaces[placingHazardId])}
+          editable
+          autoCenter={false}
+          location={placingHazardId ? hazardPlaces[placingHazardId] : null}
+          onPick={(coords) => {
+            if (!placingHazardId) return
+            setHazardPlaces((prev) => ({ ...prev, [placingHazardId]: coords }))
+          }}
+          panRequest={flowStep === 'hazard' ? panRequest : null}
+          icon={hazardPlacementIcon}
+          tooltipPrefix={t('hazard.place')}
         />
       </WatershedMap>
 
       {!flowActive && (
         <FilterBar
-          sessions={sessions}
           qualityMeasures={qualityMeasures}
           filters={filters}
           onChange={setFilters}
@@ -151,9 +230,26 @@ function AppGate() {
           relatedSamples={relatedSamples}
           impactAnalysis={impactAnalysis}
           qualityMeasures={qualityMeasures}
-          sessions={sessions}
+          canEdit={canEditSample(selectedSample)}
           onClose={() => setSelectedSampleId(null)}
           onEdit={() => startEdit(selectedSample)}
+          onDelete={async () => {
+            await deleteSample(selectedSample.id)
+            setSelectedSampleId(null)
+          }}
+        />
+      )}
+
+      {showHazardDetail && (
+        <HazardDetailSheet
+          hazard={selectedHazard}
+          samples={samples}
+          canEdit={canEditHazard(selectedHazard)}
+          onClose={() => setSelectedHazardId(null)}
+          onDelete={async () => {
+            await deleteMapHazard(selectedHazard.id)
+            setSelectedHazardId(null)
+          }}
         />
       )}
 
@@ -164,13 +260,17 @@ function AppGate() {
           location={pendingLocation}
           onLocationChange={setPendingLocation}
           onPanRequest={(coords) => setPanRequest({ coords, id: Date.now() })}
+          hazardPlaces={hazardPlaces}
+          placingHazardId={placingHazardId}
+          onHazardPlacesChange={setHazardPlaces}
+          onPlacingHazardChange={setPlacingHazardId}
           onClose={closeFlow}
           onStepChange={setFlowStep}
           onSaved={handleFlowSaved}
         />
       )}
 
-      {!flowActive && !chatOpen && !showSourceDetail && (
+      {!flowActive && !chatOpen && !showSourceDetail && !showHazardDetail && (
         <button
           type="button"
           className="fab-chat"
@@ -187,6 +287,17 @@ function AppGate() {
           <IconPlus />
         </button>
       )}
+
+      <button
+        type="button"
+        className="profile-btn"
+        onClick={() => setProfileOpen(true)}
+        aria-label={t('profile.open')}
+      >
+        <IconUser />
+      </button>
+
+      {profileOpen && <ProfileSheet onClose={() => setProfileOpen(false)} />}
 
       {showSourceDetail && (
         <div className="hydrology-map-key" aria-label={t('mapKey.label')}>
@@ -212,10 +323,14 @@ export default function App() {
       <AppStateProvider>
         <div className="app-shell">
           <LanguageToggle />
-          {hash === '#history-ux' ? (
+          {SHOW_LABS && hash === '#history-ux' ? (
             <SourceHistoryUxOptions />
-          ) : hash === '#flow-viz' ? (
+          ) : SHOW_LABS && hash === '#flow-viz' ? (
             <FlowVizOptions />
+          ) : SHOW_LABS && hash === '#stream-flow' ? (
+            <StreamFlowLab />
+          ) : SHOW_LABS && hash === '#app-streams' ? (
+            <AppStreamsDirection />
           ) : (
             <AppGate />
           )}

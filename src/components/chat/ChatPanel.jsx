@@ -53,7 +53,8 @@ function ChatMessages({ messages, user, emptyLabel, dateLocale, youLabel }) {
     const day = formatDay(m.createdAt, dateLocale)
     const showDay = day !== lastDay
     lastDay = day
-    const isOwn = m.author === (user?.email ?? youLabel)
+    const isOwn =
+      m.author === user?.username || m.author === user?.email || m.author === youLabel
 
     return (
       <div key={m.id}>
@@ -199,7 +200,7 @@ export default function ChatPanel({
     setComposing(true)
   }
 
-  function handleCreate(e) {
+  async function handleCreate(e) {
     e.preventDefault()
     if (!compose.text.trim()) return
     if (compose.subject === 'other' && !compose.title.trim()) return
@@ -209,7 +210,7 @@ export default function ChatPanel({
       ? placeLabelForOption(selected, locale)
       : compose.otherPlace.trim() || taggedPlace?.label || null
 
-    const created = createThread({
+    const created = await createThread({
       basinId: selected?.basinChatId ?? 'lima',
       townId,
       subject: compose.subject,
@@ -223,19 +224,21 @@ export default function ChatPanel({
     setThreadId(created.id)
   }
 
-  function handleReply(e) {
+  async function handleReply(e) {
     e.preventDefault()
     if (!draft.trim() || !threadId) return
-    replyToThread(threadId, draft)
+    const text = draft
     setDraft('')
+    await replyToThread(threadId, text)
   }
 
-  function handleCommunityReply(e) {
+  async function handleCommunityReply(e) {
     e.preventDefault()
     if (!draft.trim() || !communityId) return
-    ensureCommunityThread(townId)
-    replyToThread(communityId, draft)
+    const text = draft
     setDraft('')
+    await ensureCommunityThread(townId)
+    await replyToThread(communityId, text)
   }
 
   return (

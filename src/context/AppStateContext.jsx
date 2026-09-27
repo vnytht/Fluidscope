@@ -1,162 +1,240 @@
-import { createContext, useCallback, useContext, useMemo, useState } from 'react'
-import {
-  DEFAULT_QUALITY_MEASURES,
-  DEFAULT_WATERSHED_ID,
-  SEED_CHAT_MESSAGES,
-  SEED_CHAT_THREADS,
-  SEED_SAMPLES,
-  SEED_SESSIONS,
-} from '../lib/mockData'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { DEFAULT_QUALITY_MEASURES, DEFAULT_WATERSHED_ID } from '../lib/mockData'
 import { assignCatchment } from '../lib/catchments'
 import { getHydrologyAssignment, hydrateSampleHydrology } from '../lib/hydrology'
 import { attachChatPlace, communityThreadId } from '../lib/chatStructure'
 import { getApaAssignment } from '../lib/apaCatchments'
-
-// PROTOTYPE STATE — everything here lives in memory only. It stands in for
-// Supabase Auth + Postgres so we can test the user flow before wiring up a
-// real backend. Reloading the page wipes it; that's expected.
+import { api, failCode } from '../lib/api'
 
 const AppStateContext = createContext(null)
 
-function makeSessionId() {
-  return `session-${Date.now().toString(36)}`
+function canEditRecord(user, createdBy) {
+  if (!user) return false
+  if (user.role === 'staff') return true
+  return Boolean(createdBy) && createdBy === user.id
 }
 
 export function AppStateProvider({ children }) {
+  const [ready, setReady] = useState(false)
+  const [apiError, setApiError] = useState(null)
   const [user, setUser] = useState(null)
-  const [samples, setSamples] = useState(() => SEED_SAMPLES.map(hydrateSampleHydrology))
-  const [sessions, setSessions] = useState(SEED_SESSIONS)
-  const [currentSessionId, setCurrentSessionId] = useState(null)
+  const [activity, setActivity] = useState([])
+  const [samples, setSamples] = useState([])
+  const [mapHazards, setMapHazards] = useState([])
   const [qualityMeasures, setQualityMeasures] = useState(DEFAULT_QUALITY_MEASURES)
-  const [chatThreads, setChatThreads] = useState(SEED_CHAT_THREADS)
-  const [chatMessages, setChatMessages] = useState(SEED_CHAT_MESSAGES)
+  const [chatThreads, setChatThreads] = useState([])
+  const [chatMessages, setChatMessages] = useState([])
   const [activeWatershedId, setActiveWatershedId] = useState(DEFAULT_WATERSHED_ID)
 
-  function login(email) {
-    setUser({ email })
-    const newSession = { id: makeSessionId(), label: 'Today' }
-    setSessions((prev) => [newSession, ...prev])
-    setCurrentSessionId(newSession.id)
-  }
+  const applyBootstrap = useCallback((data) => {
+    setUser(data.user ?? null)
+    setSamples((data.samples ?? []).map(hydrateSampleHydrology))
+    setMapHazards(data.hazards ?? [])
+    setChatThreads(data.threads ?? [])
+    setChatMessages(data.messages ?? [])
+    setActivity(data.activity ?? [])
+    setApiError(null)
+  }, [])
 
-  function logout() {
+  const refresh = useCallback(async () => {
+    const data = await api.bootstrap()
+    applyBootstrap(data)
+    return data
+  }, [applyBootstrap])
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const data = await api.bootstrap()
+        if (!cancelled) applyBootstrap(data)
+      } catch (err) {
+        if (cancelled) return
+        if (err.status === 401) {
+          setUser(null)
+          setApiError(null)
+        } else {
+          setApiError(failCode(err, 'offline'))
+        }
+      } finally {
+        if (!cancelled) setReady(true)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [applyBootstrap])
+
+  const signup = useCallback(async ({ username, email, password, privacyAccepted }) => {
+    try {
+      await api.signup({ username, email, password, privacyAccepted })
+      await refresh()
+      return { ok: true }
+    } catch (err) {
+      return { ok: false, error: failCode(err) }
+    }
+  }, [refresh])
+
+  const login = useCallback(async ({ username, email, password }) => {
+    try {
+      await api.login({ username, email, password })
+      await refresh()
+      return { ok: true }
+    } catch (err) {
+      return { ok: false, error: failCode(err) }
+    }
+  }, [refresh])
+
+  const resetPassword = useCallback(async ({ email, password }) => {
+    try {
+      await api.resetPassword({ email, password })
+      return { ok: true }
+    } catch (err) {
+      return { ok: false, error: failCode(err) }
+    }
+  }, [])
+
+  const logout = useCallback(async () => {
+    try {
+      await api.logout()
+    } catch {
+      /* still clear local session */
+    }
     setUser(null)
-    setCurrentSessionId(null)
-  }
+    setSamples([])
+    setMapHazards([])
+    setChatThreads([])
+    setChatMessages([])
+    setActivity([])
+  }, [])
 
   function addQualityMeasure(measure) {
     setQualityMeasures((prev) => [...prev, measure])
     return measure
   }
 
-  function addSample(sample) {
+  async function addMapHazards(entries) {
+    if (!entries?.length) return
+    const created = await api.createHazards(entries)
+    setMapHazards((prev) => [...prev, ...(created.hazards ?? [])])
+    setActivity((prev) => [
+      {
+        id: `act-${Date.now().toString(36)}`,
+        type: 'hazard_add',
+        detail: `${entries.length}`,
+        at: new Date().toISOString(),
+        userId: user?.id ?? null,
+        username: user?.username ?? null,
+      },
+      ...prev,
+    ].slice(0, 200))
+  }
+
+  async function addSample(sample) {
     const hydrology = getHydrologyAssignment(sample.position)
     const apa = getApaAssignment(sample.position)
-    setSamples((prev) => [
-      ...prev,
-      attachChatPlace({
-        id: `sample-${Date.now().toString(36)}`,
-        sessionId: currentSessionId,
-        watershedId: activeWatershedId,
-        catchmentId: hydrology.basinId ?? assignCatchment(sample.position),
-        hydrology,
-        apa,
-        createdAt: new Date().toISOString(),
-        ...sample,
-      }),
-    ])
-  }
-
-  function updateSample(id, patch) {
-    setSamples((prev) =>
-      prev.map((s) => {
-        if (s.id !== id) return s
-        const next = { ...s, ...patch }
-        if (patch.position) {
-          next.hydrology = getHydrologyAssignment(patch.position)
-          next.catchmentId = next.hydrology.basinId ?? assignCatchment(patch.position)
-          next.apa = getApaAssignment(patch.position)
-          Object.assign(next, attachChatPlace(next))
-        }
-        return next
-      }),
-    )
-  }
-
-  function createThread({ basinId, townId, subject, title, placeId, placeLabel, text }) {
     const now = new Date().toISOString()
-    const thread = {
-      id: `thread-${Date.now().toString(36)}`,
-      kind: 'topic',
+    const payload = attachChatPlace({
+      watershedId: activeWatershedId,
+      catchmentId: hydrology.basinId ?? assignCatchment(sample.position),
+      hydrology,
+      apa,
+      createdAt: now,
+      ...sample,
+    })
+    const created = await api.createSource(payload)
+    setSamples((prev) => [...prev, hydrateSampleHydrology(created)])
+    return created
+  }
+
+  async function updateSample(id, patch) {
+    const current = samples.find((s) => s.id === id)
+    if (!canEditRecord(user, current?.createdBy)) {
+      throw Object.assign(new Error('forbidden'), { code: 'forbidden' })
+    }
+    let nextPatch = { ...patch, updatedAt: new Date().toISOString() }
+    if (patch.position) {
+      nextPatch.hydrology = getHydrologyAssignment(patch.position)
+      nextPatch.catchmentId = nextPatch.hydrology.basinId ?? assignCatchment(patch.position)
+      nextPatch.apa = getApaAssignment(patch.position)
+      Object.assign(nextPatch, attachChatPlace({ ...current, ...nextPatch }))
+    }
+    const updated = await api.updateSource(id, nextPatch)
+    setSamples((prev) => prev.map((s) => (s.id === id ? hydrateSampleHydrology(updated) : s)))
+    return updated
+  }
+
+  async function deleteSample(id) {
+    const current = samples.find((s) => s.id === id)
+    if (!canEditRecord(user, current?.createdBy)) {
+      throw Object.assign(new Error('forbidden'), { code: 'forbidden' })
+    }
+    await api.deleteSource(id)
+    setSamples((prev) => prev.filter((s) => s.id !== id))
+  }
+
+  async function deleteMapHazard(id) {
+    const current = mapHazards.find((h) => h.id === id)
+    if (!canEditRecord(user, current?.createdBy)) {
+      throw Object.assign(new Error('forbidden'), { code: 'forbidden' })
+    }
+    await api.deleteHazard(id)
+    setMapHazards((prev) => prev.filter((h) => h.id !== id))
+  }
+
+  async function createThread({ basinId, townId, subject, title, placeId, placeLabel, text }) {
+    const created = await api.createThread({
       basinId,
       townId,
       subject,
-      title: title?.trim() || '',
-      placeId: placeId || null,
-      placeLabel: placeLabel || null,
-      author: user?.email ?? 'You',
-      createdAt: now,
-    }
-    const message = {
-      id: `msg-${Date.now().toString(36)}`,
-      threadId: thread.id,
-      author: thread.author,
-      text: text.trim(),
-      createdAt: now,
-    }
-    setChatThreads((prev) => [thread, ...prev])
-    setChatMessages((prev) => [...prev, message])
-    return thread
-  }
-
-  const ensureCommunityThread = useCallback((townId) => {
-    const id = communityThreadId(townId)
-    setChatThreads((prev) => {
-      if (prev.some((thread) => thread.id === id)) return prev
-      return [
-        ...prev,
-        {
-          id,
-          kind: 'community',
-          basinId: 'lima',
-          townId,
-          subject: 'status',
-          title: '',
-          placeId: null,
-          placeLabel: null,
-          author: 'WaterScope',
-          createdAt: new Date().toISOString(),
-        },
-      ]
+      title,
+      placeId,
+      placeLabel,
+      text,
     })
-    return id
-  }, [])
-
-  function replyToThread(threadId, text) {
-    setChatMessages((prev) => [
-      ...prev,
-      {
-        id: `msg-${Date.now().toString(36)}`,
-        threadId,
-        author: user?.email ?? 'You',
-        text: text.trim(),
-        createdAt: new Date().toISOString(),
-      },
-    ])
+    setChatThreads((prev) => [created.thread, ...prev])
+    setChatMessages((prev) => [...prev, created.message])
+    return created.thread
   }
+
+  const ensureCommunityThread = useCallback(async (townId) => {
+    const id = communityThreadId(townId)
+    if (chatThreads.some((thread) => thread.id === id)) return id
+    const created = await api.ensureCommunity(townId)
+    setChatThreads((prev) => (prev.some((thread) => thread.id === id) ? prev : [...prev, created.thread]))
+    return id
+  }, [chatThreads])
+
+  async function replyToThread(threadId, text) {
+    const message = await api.replyToThread(threadId, text)
+    setChatMessages((prev) => [...prev, message])
+    return message
+  }
+
+  const canEditSample = useCallback((sample) => canEditRecord(user, sample?.createdBy), [user])
+  const canEditHazard = useCallback((hazard) => canEditRecord(user, hazard?.createdBy), [user])
 
   const value = useMemo(
     () => ({
+      ready,
+      apiError,
       user,
+      activity,
       login,
+      signup,
+      resetPassword,
       logout,
       samples,
-      sessions,
-      currentSessionId,
+      mapHazards,
+      addMapHazards,
       qualityMeasures,
       addQualityMeasure,
       addSample,
       updateSample,
+      deleteSample,
+      deleteMapHazard,
+      canEditSample,
+      canEditHazard,
       chatThreads,
       chatMessages,
       createThread,
@@ -165,7 +243,25 @@ export function AppStateProvider({ children }) {
       activeWatershedId,
       setActiveWatershedId,
     }),
-    [user, samples, sessions, currentSessionId, qualityMeasures, chatThreads, chatMessages, activeWatershedId, ensureCommunityThread],
+    [
+      ready,
+      apiError,
+      user,
+      activity,
+      login,
+      signup,
+      resetPassword,
+      logout,
+      samples,
+      mapHazards,
+      qualityMeasures,
+      chatThreads,
+      chatMessages,
+      activeWatershedId,
+      ensureCommunityThread,
+      canEditSample,
+      canEditHazard,
+    ],
   )
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>
