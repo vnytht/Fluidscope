@@ -9,6 +9,7 @@ export default function LoginScreen() {
   const [mode, setMode] = useState('login')
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
+  const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [privacyAccepted, setPrivacyAccepted] = useState(false)
   const [showPrivacy, setShowPrivacy] = useState(false)
@@ -30,10 +31,14 @@ export default function LoginScreen() {
         ? await signup({ username, email, password, privacyAccepted })
         : mode === 'forgot'
           ? await resetPassword({ email, password })
-          : await login({ username, email, password })
+          : await login({ identifier, password })
     setBusy(false)
     if (!result.ok) {
-      setError(t(`login.error.${result.error}`) || t('login.error.unknown'))
+      const key =
+        result.error === 'missing' && mode === 'signup'
+          ? 'login.error.missingSignup'
+          : `login.error.${result.error}`
+      setError(t(key) || t('login.error.unknown'))
       return
     }
     if (mode === 'forgot') {
@@ -96,7 +101,20 @@ export default function LoginScreen() {
         )}
 
         <form onSubmit={handleSubmit}>
-          {mode !== 'forgot' && (
+          {mode === 'login' && (
+            <label>
+              {t('login.identifier')}
+              <input
+                type="text"
+                autoComplete="username"
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
+                placeholder={t('login.identifierHint')}
+                required
+              />
+            </label>
+          )}
+          {mode === 'signup' && (
             <label>
               {t('login.username')}
               <input
@@ -109,17 +127,19 @@ export default function LoginScreen() {
               />
             </label>
           )}
-          <label>
-            {t('login.email')}
-            <input
-              type="email"
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              required
-            />
-          </label>
+          {mode !== 'login' && (
+            <label>
+              {t('login.email')}
+              <input
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                required
+              />
+            </label>
+          )}
           <label>
             {mode === 'forgot' ? t('login.newPassword') : t('login.password')}
             <input

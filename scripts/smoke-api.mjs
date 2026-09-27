@@ -95,9 +95,21 @@ try {
 
   const badLogin = await req('/api/auth/login', {
     method: 'POST',
-    body: { username: userA.username, email: userA.email, password: 'wrongpass' },
+    body: { identifier: userA.username, password: 'wrongpass' },
   })
   assert('login rejects bad password', badLogin.status === 401)
+
+  const loginNameOnly = await req('/api/auth/login', {
+    method: 'POST',
+    body: { identifier: userA.username, password: userA.password },
+  })
+  assert('login with username only', loginNameOnly.status === 200 && loginNameOnly.session)
+
+  const loginMailOnly = await req('/api/auth/login', {
+    method: 'POST',
+    body: { identifier: userA.email, password: userA.password },
+  })
+  assert('login with email only', loginMailOnly.status === 200 && loginMailOnly.session)
 
   const boot = await req('/api/bootstrap', { cookie: cookieA })
   assert(
@@ -210,13 +222,13 @@ try {
 
   const loginOld = await req('/api/auth/login', {
     method: 'POST',
-    body: { username: userA.username, email: userA.email, password: 'workshop1' },
+    body: { identifier: userA.email, password: 'workshop1' },
   })
   assert('old password fails after reset', loginOld.status === 401)
 
   const loginNew = await req('/api/auth/login', {
     method: 'POST',
-    body: { username: userA.username, email: userA.email, password: 'workshop2' },
+    body: { identifier: userA.username, password: 'workshop2' },
   })
   assert('new password works', loginNew.status === 200 && loginNew.session)
 

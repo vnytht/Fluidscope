@@ -224,20 +224,20 @@ async function signup(request, env) {
 
 async function login(request, env) {
   const body = await readJson(request)
-  const username = String(body.username || '').trim()
-  const email = String(body.email || '').trim().toLowerCase()
   const password = String(body.password || '')
-  if (!username || !email || !password) return json({ error: 'missing' }, 400)
+  const identifier = String(body.identifier || body.username || body.email || '').trim()
+  if (!identifier || !password) return json({ error: 'missing' }, 400)
 
-  const row = await env.DB.prepare(
-    'SELECT * FROM users WHERE email = ? AND lower(username) = lower(?)',
-  ).bind(email, username).first()
+  const looksLikeEmail = identifier.includes('@')
+  const row = looksLikeEmail
+    ? await env.DB.prepare('SELECT * FROM users WHERE email = ?').bind(identifier.toLowerCase()).first()
+    : await env.DB.prepare('SELECT * FROM users WHERE lower(username) = lower(?)').bind(identifier).first()
   if (!row) return json({ error: 'invalid' }, 401)
   const ok = await verifyPassword(password, row.password_salt, row.password_hash)
   if (!ok) return json({ error: 'invalid' }, 401)
 
   const user = publicUser(row, env)
-  await writeEvent(env.DB, user, 'login', { email })
+  await writeEvent(env.DB, user, 'login', { email: row.email })
   return withSession(request, env, user, { user })
 }
 

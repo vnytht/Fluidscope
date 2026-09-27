@@ -75,9 +75,9 @@ export function AppStateProvider({ children }) {
     }
   }, [refresh])
 
-  const login = useCallback(async ({ username, email, password }) => {
+  const login = useCallback(async ({ identifier, username, email, password }) => {
     try {
-      await api.login({ username, email, password })
+      await api.login({ identifier, username, email, password })
       await refresh()
       return { ok: true }
     } catch (err) {
