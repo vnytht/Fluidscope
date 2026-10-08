@@ -36,4 +36,18 @@ run('npx', [
   '--persist-to',
   '.wrangler/state',
 ])
+
+async function waitForApi() {
+  for (let i = 0; i < 40; i += 1) {
+    try {
+      const res = await fetch('http://127.0.0.1:8787/api/health')
+      if (res.ok) return
+    } catch {
+      /* not up yet */
+    }
+    await new Promise((resolve) => setTimeout(resolve, 250))
+  }
+}
+
+await waitForApi()
 run('npx', ['vite'])

@@ -1,0 +1,44 @@
+.flow-order-legend {
+  position: absolute;
+  left: calc(16px + var(--ws-safe-left));
+  bottom: calc(84px + var(--ws-safe-bottom));
+  z-index: 900;
+  width: min(220px, calc(100vw - 88px));
+  padding: 10px 12px 12px;
+  border-radius: 16px;
+  border: 1px solid var(--ws-line);
+  background: color-mix(in srgb, var(--ws-surface) 92%, transparent);
+  color: var(--ws-ink);
+  pointer-events: none;
+}
+
+.flow-order-legend-title {
+  margin: 0 0 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ws-ink-soft);
+}
+
+.flow-order-legend-bar {
+  height: 10px;
+  border-radius: 99px;
+  background: linear-gradient(90deg, rgb(232, 196, 140) 0%, rgb(22, 90, 99) 100%);
+}
+
+.flow-order-legend-stops {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--ws-ink-soft);
+}
+
+.flow-order-legend-note {
+  margin: 8px 0 0;
+  font-size: 0.68rem;
+  line-height: 1.35;
+  color: var(--ws-ink-soft);
+}

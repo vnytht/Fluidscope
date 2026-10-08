@@ -5,12 +5,13 @@ import { hazardName, measureName, sourceTypeName, usageName } from '../../lib/i1
 import { asUsageList } from '../../lib/sourceUsage'
 import { useLanguage } from '../../context/LanguageContext'
 import { formatReadingDisplay } from '../../lib/readings'
-import { evaluateReading } from '../../lib/qualityBands'
+import { evaluateReading, PUBLIC_INFO_LINKS } from '../../lib/qualityBands'
 import { getCatchment, shortCatchmentName } from '../../lib/catchments'
 import { APA_BASIN_COLORS } from '../../lib/apaCatchments'
 import { getChatTown } from '../../lib/chatStructure'
 import ChatPanel from '../chat/ChatPanel'
 import SourceHistoryPanel from './SourceHistoryPanel'
+import ElevationRow from './ElevationRow'
 import {
   IconAlert,
   IconBeaker,
@@ -26,6 +27,7 @@ export default function SourceDetailSheet({
   impactAnalysis,
   qualityMeasures,
   canEdit = false,
+  canDelete = false,
   onClose,
   onEdit,
   onDelete,
@@ -55,6 +57,7 @@ export default function SourceDetailSheet({
   useEffect(() => {
     setTab('details')
     setChatOpen(false)
+    setConfirmDelete(false)
   }, [sample.id])
 
   if (chatOpen) {
@@ -133,6 +136,7 @@ export default function SourceDetailSheet({
             className="flow-sheet-body source-detail-body source-detail-panel"
           >
             <div className="source-detail-rows">
+              <ElevationRow position={sample.position} />
               {sample.depthMeters != null && (
                 <div className="source-detail-row">
                   <div className="source-detail-row-text">
@@ -186,9 +190,11 @@ export default function SourceDetailSheet({
                 </div>
               )}
               {sample.readings.map((reading) => {
-                const { name, value, unit } = formatReadingDisplay(reading, qualityMeasures)
-                const { safe } = evaluateReading(reading.measureId, reading.value)
+                const { name, value, unit } = formatReadingDisplay(reading, qualityMeasures, t)
+                const measure = qualityMeasures.find((item) => item.id === reading.measureId)
+                const { safe } = evaluateReading(reading.measureId, reading.value, measure)
                 const notSafe = safe === false
+                const publicLink = PUBLIC_INFO_LINKS[reading.measureId]
                 return (
                   <div key={reading.measureId} className="source-detail-row">
                     <span className="source-detail-row-icon" aria-hidden="true">
@@ -200,6 +206,17 @@ export default function SourceDetailSheet({
                         {value}
                         {unit ? ` ${unit}` : ''}
                       </span>
+                      {publicLink && (
+                        <a
+                          className="source-detail-learn"
+                          href={publicLink.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {t('quality.furtherInfo')}
+                          <span aria-hidden="true"> ↗</span>
+                        </a>
+                      )}
                     </div>
                     {safe != null && (
                       <span className={`ws-status ${notSafe ? 'ws-status--not' : 'ws-status--safe'}`}>
@@ -260,20 +277,24 @@ export default function SourceDetailSheet({
         </div>
       </div>
 
-      {tab === 'details' && canEdit && (
+      {tab === 'details' && (canEdit || canDelete) && (
         <div className="flow-sheet-footer source-detail-footer">
           {!confirmDelete ? (
             <>
-              <button type="button" className="btn-outline source-detail-edit" onClick={onEdit}>
-                {t('detail.edit')}
-              </button>
-              <button
-                type="button"
-                className="btn-outline source-detail-delete"
-                onClick={() => setConfirmDelete(true)}
-              >
-                {t('detail.delete')}
-              </button>
+              {canEdit && (
+                <button type="button" className="btn-outline source-detail-edit" onClick={onEdit}>
+                  {t('detail.edit')}
+                </button>
+              )}
+              {canDelete && (
+                <button
+                  type="button"
+                  className="btn-outline source-detail-delete"
+                  onClick={() => setConfirmDelete(true)}
+                >
+                  {t('detail.delete')}
+                </button>
+              )}
             </>
           ) : (
             <>

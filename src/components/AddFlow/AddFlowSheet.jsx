@@ -6,6 +6,8 @@ import QualityStep from './steps/QualityStep'
 import HazardStep from './steps/HazardStep'
 import ReviewStep from './steps/ReviewStep'
 import { HAZARD_TYPES } from '../../lib/hazards'
+import { DEFAULT_QUALITY_MEASURES } from '../../lib/mockData'
+import { failCode } from '../../lib/api'
 import { IconClose } from '../ui/Icons'
 import { useLanguage } from '../../context/LanguageContext'
 import './AddFlow.css'
@@ -41,13 +43,16 @@ export default function AddFlowSheet({
   onSaved,
 }) {
   const { t } = useLanguage()
-  const { qualityMeasures, addQualityMeasure, addSample, addMapHazards, updateSample } = useAppState()
+  const { addSample, addMapHazards, updateSample } = useAppState()
   const [stepIndex, setStepIndex] = useState(0)
   const [sourceType, setSourceType] = useState(null)
   const [sourceDetails, setSourceDetails] = useState(emptySourceDetails)
   const [readings, setReadings] = useState([])
   const [hazards, setHazards] = useState(null)
   const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState(null)
+  const [sessionMeasures, setSessionMeasures] = useState([])
+  const measuresForFlow = [...DEFAULT_QUALITY_MEASURES, ...sessionMeasures]
 
   const isEdit = Boolean(editSampleId)
   const step = STEPS[stepIndex]
@@ -111,6 +116,7 @@ export default function AddFlowSheet({
           return { typeId, activity: meta?.activity ?? 'passive', position }
         })
         .filter(Boolean)
+      setSaveError(null)
       setSaving(true)
       try {
         await addMapHazards(placedHazards)
@@ -122,6 +128,8 @@ export default function AddFlowSheet({
           onSaved?.(created.id)
         }
         onClose()
+      } catch (err) {
+        setSaveError(failCode(err, 'offline'))
       } finally {
         setSaving(false)
       }
@@ -178,10 +186,10 @@ export default function AddFlowSheet({
         </div>
         <div hidden={step !== 'quality'}>
           <QualityStep
-            qualityMeasures={qualityMeasures}
+            qualityMeasures={measuresForFlow}
             readings={readings}
             onChange={setReadings}
-            onAddMeasure={addQualityMeasure}
+            onAddMeasure={(measure) => setSessionMeasures((prev) => [...prev, measure])}
           />
         </div>
         <div hidden={step !== 'hazard'}>
@@ -218,12 +226,19 @@ export default function AddFlowSheet({
             readings={readings}
             hazards={hazards ?? []}
             hazardPlaces={hazardPlaces}
-            qualityMeasures={qualityMeasures}
+            qualityMeasures={measuresForFlow}
             onEdit={goToStep}
           />
         </div>
       </div>
 
+      {saveError && (
+        <p className="flow-save-error" role="alert">
+          {t(`flow.error.${saveError}`) === `flow.error.${saveError}`
+            ? t('flow.error.unknown')
+            : t(`flow.error.${saveError}`)}
+        </p>
+      )}
       <div className="flow-sheet-footer">
         <button type="button" className="btn-ghost" onClick={handleBack}>
           {isFirst ? t('flow.cancel') : t('flow.back')}

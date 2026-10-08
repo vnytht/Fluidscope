@@ -8,9 +8,13 @@ import { api, failCode } from '../lib/api'
 
 const AppStateContext = createContext(null)
 
+function isStaffUser(user) {
+  return user?.role === 'staff'
+}
+
 function canEditRecord(user, createdBy) {
   if (!user) return false
-  if (user.role === 'staff') return true
+  if (isStaffUser(user)) return true
   return Boolean(createdBy) && createdBy === user.id
 }
 
@@ -45,20 +49,29 @@ export function AppStateProvider({ children }) {
   useEffect(() => {
     let cancelled = false
     ;(async () => {
-      try {
-        const data = await api.bootstrap()
-        if (!cancelled) applyBootstrap(data)
-      } catch (err) {
-        if (cancelled) return
-        if (err.status === 401) {
-          setUser(null)
-          setApiError(null)
-        } else {
-          setApiError(failCode(err, 'offline'))
+      let lastErr = null
+      for (let attempt = 0; attempt < 16 && !cancelled; attempt += 1) {
+        try {
+          const data = await api.bootstrap()
+          if (!cancelled) applyBootstrap(data)
+          lastErr = null
+          break
+        } catch (err) {
+          lastErr = err
+          if (err.status === 401) {
+            if (!cancelled) {
+              setUser(null)
+              setApiError(null)
+            }
+            lastErr = null
+            break
+          }
+          await new Promise((resolve) => setTimeout(resolve, 400))
         }
-      } finally {
-        if (!cancelled) setReady(true)
       }
+      if (cancelled) return
+      if (lastErr) setApiError(failCode(lastErr, 'offline'))
+      setReady(true)
     })()
     return () => {
       cancelled = true
@@ -107,11 +120,6 @@ export function AppStateProvider({ children }) {
     setChatMessages([])
     setActivity([])
   }, [])
-
-  function addQualityMeasure(measure) {
-    setQualityMeasures((prev) => [...prev, measure])
-    return measure
-  }
 
   async function addMapHazards(entries) {
     if (!entries?.length) return
@@ -165,8 +173,7 @@ export function AppStateProvider({ children }) {
   }
 
   async function deleteSample(id) {
-    const current = samples.find((s) => s.id === id)
-    if (!canEditRecord(user, current?.createdBy)) {
+    if (!isStaffUser(user)) {
       throw Object.assign(new Error('forbidden'), { code: 'forbidden' })
     }
     await api.deleteSource(id)
@@ -174,8 +181,7 @@ export function AppStateProvider({ children }) {
   }
 
   async function deleteMapHazard(id) {
-    const current = mapHazards.find((h) => h.id === id)
-    if (!canEditRecord(user, current?.createdBy)) {
+    if (!isStaffUser(user)) {
       throw Object.assign(new Error('forbidden'), { code: 'forbidden' })
     }
     await api.deleteHazard(id)
@@ -213,6 +219,7 @@ export function AppStateProvider({ children }) {
 
   const canEditSample = useCallback((sample) => canEditRecord(user, sample?.createdBy), [user])
   const canEditHazard = useCallback((hazard) => canEditRecord(user, hazard?.createdBy), [user])
+  const canDeletePins = isStaffUser(user)
 
   const value = useMemo(
     () => ({
@@ -228,13 +235,13 @@ export function AppStateProvider({ children }) {
       mapHazards,
       addMapHazards,
       qualityMeasures,
-      addQualityMeasure,
       addSample,
       updateSample,
       deleteSample,
       deleteMapHazard,
       canEditSample,
       canEditHazard,
+      canDeletePins,
       chatThreads,
       chatMessages,
       createThread,
@@ -261,6 +268,7 @@ export function AppStateProvider({ children }) {
       ensureCommunityThread,
       canEditSample,
       canEditHazard,
+      canDeletePins,
     ],
   )
 

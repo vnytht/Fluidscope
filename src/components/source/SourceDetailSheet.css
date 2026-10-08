@@ -260,6 +260,20 @@
   line-height: 1.35;
 }
 
+.source-detail-learn {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 2px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ws-accent);
+  text-decoration: none;
+}
+
+.source-detail-learn:hover {
+  text-decoration: underline;
+}
+
 .ws-status {
   flex-shrink: 0;
   align-self: center;

@@ -194,6 +194,47 @@ export function getDownstreamBasinPath(startBasinId) {
   return { basinIds: path, exitsDataset }
 }
 
+const basinHopById = new Map()
+let maxBasinHops = 0
+for (const feature of basinFeatures) {
+  const id = normalizeId(feature.properties.HYBAS_ID)
+  const hops = Math.max(0, getDownstreamBasinPath(id).basinIds.length - 1)
+  basinHopById.set(id, hops)
+  if (hops > maxBasinHops) maxBasinHops = hops
+}
+
+export function getBasinHopCount(basinId) {
+  return basinHopById.get(normalizeId(basinId)) ?? 0
+}
+
+export function getMaxBasinHops() {
+  return maxBasinHops
+}
+
+export function getBasinFlowNetworkGeoJson() {
+  const features = []
+  for (const feature of basinFeatures) {
+    const id = normalizeId(feature.properties.HYBAS_ID)
+    const nextId = normalizeId(feature.properties.NEXT_DOWN)
+    if (!nextId || nextId === '0' || !basinById.has(nextId)) continue
+    const from = getBasinCenter(id)
+    const to = getBasinCenter(nextId)
+    if (!from || !to) continue
+    features.push({
+      type: 'Feature',
+      properties: { from: id, to: nextId, hops: getBasinHopCount(id) },
+      geometry: {
+        type: 'LineString',
+        coordinates: [
+          [from[1], from[0]],
+          [to[1], to[0]],
+        ],
+      },
+    })
+  }
+  return { type: 'FeatureCollection', features }
+}
+
 export function getDownstreamRiverPath(startRiverId) {
   const path = []
   const visited = new Set()

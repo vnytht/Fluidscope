@@ -123,6 +123,10 @@ export const STRINGS = {
     'elevLegend.note': 'Translucent tint over OpenTopoMap (OSM + SRTM).',
     'layers.basins': 'Basins',
     'layers.subBasins': 'Sub-basins',
+    'layers.flowOrder': 'Basin flow order',
+    'flowOrder.coast': 'Coast',
+    'flowOrder.headwaters': 'Headwaters',
+    'flowOrder.note': 'Arrow: this catchment drains into the next. Colour: steps to the sea (HydroBASINS).',
     'layers.close': 'Close layers',
 
     'mapKey.label': 'Catchment and slope',
@@ -137,6 +141,10 @@ export const STRINGS = {
     'flow.save': 'Save',
     'flow.saving': 'Saving…',
     'flow.submit': 'Submit to map',
+    'flow.error.offline': 'Cannot reach the server. Start the app with npm run dev.',
+    'flow.error.unauthorized': 'Sign in again, then submit.',
+    'flow.error.forbidden': 'You cannot save this pin.',
+    'flow.error.unknown': 'Could not save. Try again.',
     'flow.editTitle': 'Edit source',
     'flow.step.location': 'Location',
     'flow.step.sourceType': 'Source',
@@ -171,13 +179,29 @@ export const STRINGS = {
 
     'quality.title': 'What do the test strips show?',
     'quality.hint': 'Expand a test to enter your reading — at least one required.',
+    'quality.limitsNote':
+      'Limits follow the EU Drinking Water Directive 2020/2184 (applied in Portugal via Decreto-Lei 69/2023) where one exists; otherwise WHO guidance (or US EPA where noted). A value exactly on the limit counts as green. “+” means the last mark of the scale reads “this value or higher”. Parameters with no limit anywhere (EU, WHO or Portugal) have number entry only, with no colours.',
     'quality.tapToAdd': 'Tap to add',
     'quality.enterReading': 'Enter your reading',
     'quality.slideReading': 'Slide to your reading',
     'quality.scale': 'Scale: {scale}',
     'quality.readingPlaceholder': 'Enter reading',
-    'quality.newName': 'Measure name (e.g. E. coli)',
-    'quality.newScale': 'Scale (e.g. present / absent)',
+    'quality.newName': 'Measure name',
+    'quality.newScale': 'Present or absent',
+    'quality.present': 'Present',
+    'quality.absent': 'Absent',
+    'quality.presenceScale': 'Present or absent',
+    'quality.presenceHint': 'Present is not safe (red). Absent is safe (green).',
+    'quality.presenceAria': 'Present or absent',
+    'quality.entryTypeAria': 'How this test is recorded',
+    'quality.entryPresence': 'Present or absent',
+    'quality.entryNumeric': 'Number only (no colour)',
+    'quality.numericHint': 'No EU, WHO or Portuguese limit — stored as a number, not coloured.',
+    'quality.numericPlaceholder': 'Enter a number',
+    'quality.newPresenceNote': 'This test has no number scale. Choose which result is not safe:',
+    'quality.presentMeansAria': 'Which result is not safe',
+    'quality.presentMeansUnsafe': 'Present = not safe',
+    'quality.presentMeansSafe': 'Present = safe (exception)',
     'quality.addMeasure': 'Add measure',
     'quality.addNew': '+ Add a new measure',
     'quality.standard': 'Standard: {standard}',
@@ -188,10 +212,34 @@ export const STRINGS = {
     'quality.withinLimit': 'within safe limit',
     'quality.outsideLimit': 'outside safe limit',
     'quality.notSelected': 'Not selected',
+    'quality.furtherInfo': 'Further information',
 
-    'measure.nitrate': 'Nitrate as NO₃-N',
-    'measure.nitrite': 'Nitrite as NO₂-N',
+    'whoRisk.low': 'Low risk / Safe',
+    'whoRisk.intProbablySafe': 'Intermediate risk / Probably safe',
+    'whoRisk.intPossiblySafe': 'Intermediate risk / Possibly safe',
+    'whoRisk.highPossiblyUnsafe': 'High risk / Possibly unsafe',
+    'whoRisk.highProbablyUnsafe': 'High risk / Probably unsafe',
+    'whoRisk.unsafe': 'Unsafe',
+
     'measure.ph': 'pH',
+    'measure.nitrate': 'Nitrate (ppm)',
+    'measure.ecoli': 'E. coli',
+    'measure.coliforms': 'Total coliforms',
+    'measure.conductivity': 'Conductivity (µS/cm)',
+    'measure.tds': 'Total dissolved solids (ppm)',
+    'measure.arsenic': 'Arsenic, As3 + As5 (µg/L)',
+    'measure.no2n': 'NO2-N (ppm)',
+    'measure.no3n': 'NO3-N (ppm)',
+    'measure.hardness': 'Total hardness (ppm as CaCO3)',
+    'measure.chlorineFree': 'Free chlorine (ppm)',
+    'measure.chlorineTotal': 'Total chlorine (ppm)',
+    'measure.mps': 'MPS (ppm)',
+    'measure.copper': 'Copper (ppm)',
+    'measure.iron': 'Iron (ppm)',
+    'measure.lead': 'Lead (µg/L)',
+    'measure.sulfite': 'Sulfite (ppm)',
+    'measure.cyanuric': 'Cyanuric acid (ppm)',
+    'measure.carbonate': 'Carbonate (ppm)',
 
     'hazard.title': 'Hazards to put on the map?',
     'hazard.hint':
@@ -248,6 +296,10 @@ export const STRINGS = {
     'detail.details': 'Details',
     'detail.history': 'History',
     'detail.depth': 'Depth',
+    'detail.elevation': 'Elevation',
+    'detail.elevationValue': '{n} m',
+    'detail.elevationLoading': 'Looking up…',
+    'detail.elevationUnknown': 'Not available',
     'detail.usage': 'Usage',
     'detail.runsDry': 'Runs dry',
     'detail.yes': 'Yes',
@@ -339,12 +391,40 @@ export const STRINGS = {
     'chat.placeholder': 'Send a message…',
     'chat.send': 'Send',
     'chat.you': 'You',
+    'chat.moderatorName': '{name} (moderator)',
+    'chat.seed.msg-community-1':
+      'This is the Viana do Castelo community chat. Use threads for one place or one hazard.',
+    'chat.seed.msg-community-2':
+      'Logged a well near the mill this week. Nitrate still high after rain.',
+    'chat.seed.msg-1':
+      'Reminder: sample within a day or two of rain if you can — readings shift fast around here.',
+    'chat.seed.msg-2': 'Well by the old mill tested high nitrate again today.',
+    'chat.seed.msg-2b': 'Same here after the rain — spring uphill looks fine though.',
+    'chat.seed.msg-3': 'Spring still tasting normal. pH 7 this morning.',
+    'chat.seed.msg-4': 'Anyone else seeing spray near the coastal borehole?',
+    'chat.seedTitle.thread-1': 'Nitrate after rain',
+    'chat.seedTitle.thread-2': 'Spring still clear',
+    'chat.seedTitle.thread-3': 'Sample after rain',
+    'chat.seedTitle.thread-4': 'Eucalyptus near the coast',
 
     'popup.linked': '{count} linked · {name}',
 
-    'public.nitrate': 'EPA — nitrate in drinking water',
-    'public.nitrite': 'EPA — nitrite in drinking water',
-    'public.ph': 'WHO — drinking-water quality',
+    'public.ph': 'USGS — pH and water',
+    'public.nitrate': 'WHO Guidelines for drinking-water quality',
+    'public.ecoli': 'WHO Guidelines for drinking-water quality',
+    'public.coliforms': 'WHO Guidelines for drinking-water quality',
+    'public.conductivity': 'USGS — conductivity and water',
+    'public.tds': 'WHO Guidelines for drinking-water quality',
+    'public.arsenic': 'WHO — arsenic',
+    'public.no2n': 'EU 2020/2184 — drinking water',
+    'public.no3n': 'WHO Guidelines for drinking-water quality',
+    'public.hardness': 'Águas do Alto Minho — qualidade da água',
+    'public.chlorineFree': 'WHO Guidelines for drinking-water quality',
+    'public.chlorineTotal': 'WHO Guidelines for drinking-water quality',
+    'public.copper': 'WHO Guidelines for drinking-water quality',
+    'public.iron': 'EU 2020/2184 — drinking water',
+    'public.lead': 'WHO — lead poisoning and health',
+    'public.cyanuric': 'WHO — sodium dichloroisocyanurate',
   },
   pt: {
     'lang.label': 'Idioma',
@@ -459,6 +539,10 @@ export const STRINGS = {
     'elevLegend.note': 'Tinta translúcida sobre OpenTopoMap (OSM + SRTM).',
     'layers.basins': 'Bacias',
     'layers.subBasins': 'Sub-bacias',
+    'layers.flowOrder': 'Ordem de escoamento',
+    'flowOrder.coast': 'Costa',
+    'flowOrder.headwaters': 'Cabeceiras',
+    'flowOrder.note': 'Seta: esta bacia escoa para a seguinte. Cor: passos até ao mar (HydroBASINS).',
     'layers.close': 'Fechar camadas',
 
     'mapKey.label': 'Bacia e declive',
@@ -473,6 +557,10 @@ export const STRINGS = {
     'flow.save': 'Guardar',
     'flow.saving': 'A guardar…',
     'flow.submit': 'Enviar para o mapa',
+    'flow.error.offline': 'Sem ligação ao servidor. Inicie a app com npm run dev.',
+    'flow.error.unauthorized': 'Inicie sessão outra vez, depois envie.',
+    'flow.error.forbidden': 'Não pode guardar este ponto.',
+    'flow.error.unknown': 'Não foi possível guardar. Tente outra vez.',
     'flow.editTitle': 'Editar fonte',
     'flow.step.location': 'Localização',
     'flow.step.sourceType': 'Fonte',
@@ -508,13 +596,29 @@ export const STRINGS = {
 
     'quality.title': 'O que mostram as tiras de teste?',
     'quality.hint': 'Abra um teste para introduzir a leitura — é necessário pelo menos um.',
+    'quality.limitsNote':
+      'Os limites seguem a Diretiva da Água Potável da UE 2020/2184 (aplicada em Portugal pelo Decreto-Lei 69/2023) quando existe um valor; caso contrário, a orientação da OMS (ou da EPA dos EUA quando indicado). Um valor exactamente no limite conta como verde. «+» significa que a última marca da escala lê «este valor ou superior». Parâmetros sem limite (UE, OMS ou Portugal) têm só introdução numérica, sem cores.',
     'quality.tapToAdd': 'Toque para adicionar',
     'quality.enterReading': 'Introduza a sua leitura',
     'quality.slideReading': 'Deslize até à leitura',
     'quality.scale': 'Escala: {scale}',
     'quality.readingPlaceholder': 'Introduzir leitura',
-    'quality.newName': 'Nome da medição (ex.: E. coli)',
-    'quality.newScale': 'Escala (ex.: presente / ausente)',
+    'quality.newName': 'Nome da medição',
+    'quality.newScale': 'Presente ou ausente',
+    'quality.present': 'Presente',
+    'quality.absent': 'Ausente',
+    'quality.presenceScale': 'Presente ou ausente',
+    'quality.presenceHint': 'Presente não é seguro (vermelho). Ausente é seguro (verde).',
+    'quality.presenceAria': 'Presente ou ausente',
+    'quality.entryTypeAria': 'Como se regista este teste',
+    'quality.entryPresence': 'Presente ou ausente',
+    'quality.entryNumeric': 'Só número (sem cor)',
+    'quality.numericHint': 'Sem limite da UE, OMS ou Portugal — guarda-se o número, sem cor.',
+    'quality.numericPlaceholder': 'Introduza um número',
+    'quality.newPresenceNote': 'Este teste não tem escala numérica. Escolha qual resultado não é seguro:',
+    'quality.presentMeansAria': 'Qual resultado não é seguro',
+    'quality.presentMeansUnsafe': 'Presente = não seguro',
+    'quality.presentMeansSafe': 'Presente = seguro (exceção)',
     'quality.addMeasure': 'Adicionar medição',
     'quality.addNew': '+ Adicionar uma nova medição',
     'quality.standard': 'Norma: {standard}',
@@ -525,10 +629,34 @@ export const STRINGS = {
     'quality.withinLimit': 'dentro do limite seguro',
     'quality.outsideLimit': 'fora do limite seguro',
     'quality.notSelected': 'Não selecionado',
+    'quality.furtherInfo': 'Mais informação',
 
-    'measure.nitrate': 'Nitratos como NO₃-N',
-    'measure.nitrite': 'Nitritos como NO₂-N',
+    'whoRisk.low': 'Risco baixo / Seguro',
+    'whoRisk.intProbablySafe': 'Risco intermédio / Provavelmente seguro',
+    'whoRisk.intPossiblySafe': 'Risco intermédio / Possivelmente seguro',
+    'whoRisk.highPossiblyUnsafe': 'Risco alto / Possivelmente não seguro',
+    'whoRisk.highProbablyUnsafe': 'Risco alto / Provavelmente não seguro',
+    'whoRisk.unsafe': 'Não seguro',
+
     'measure.ph': 'pH',
+    'measure.nitrate': 'Nitratos (ppm)',
+    'measure.ecoli': 'E. coli',
+    'measure.coliforms': 'Coliformes totais',
+    'measure.conductivity': 'Condutividade (µS/cm)',
+    'measure.tds': 'Sólidos dissolvidos totais (ppm)',
+    'measure.arsenic': 'Arsénio, As3 + As5 (µg/L)',
+    'measure.no2n': 'NO2-N (ppm)',
+    'measure.no3n': 'NO3-N (ppm)',
+    'measure.hardness': 'Dureza total (ppm como CaCO3)',
+    'measure.chlorineFree': 'Cloro livre (ppm)',
+    'measure.chlorineTotal': 'Cloro total (ppm)',
+    'measure.mps': 'MPS (ppm)',
+    'measure.copper': 'Cobre (ppm)',
+    'measure.iron': 'Ferro (ppm)',
+    'measure.lead': 'Chumbo (µg/L)',
+    'measure.sulfite': 'Sulfito (ppm)',
+    'measure.cyanuric': 'Ácido cianúrico (ppm)',
+    'measure.carbonate': 'Carbonato (ppm)',
 
     'hazard.title': 'Riscos para o mapa?',
     'hazard.hint':
@@ -585,6 +713,10 @@ export const STRINGS = {
     'detail.details': 'Detalhes',
     'detail.history': 'Histórico',
     'detail.depth': 'Profundidade',
+    'detail.elevation': 'Elevação',
+    'detail.elevationValue': '{n} m',
+    'detail.elevationLoading': 'A obter…',
+    'detail.elevationUnknown': 'Indisponível',
     'detail.usage': 'Uso',
     'detail.runsDry': 'Seca',
     'detail.yes': 'Sim',
@@ -676,12 +808,40 @@ export const STRINGS = {
     'chat.placeholder': 'Enviar uma mensagem…',
     'chat.send': 'Enviar',
     'chat.you': 'Eu',
+    'chat.moderatorName': '{name} (moderação)',
+    'chat.seed.msg-community-1':
+      'Este é o chat da comunidade de Viana do Castelo. Use tópicos para um lugar ou um risco.',
+    'chat.seed.msg-community-2':
+      'Registei um poço junto ao moinho esta semana. Os nitratos ainda estão altos depois da chuva.',
+    'chat.seed.msg-1':
+      'Lembrete: se puder, faça a amostragem no prazo de um ou dois dias após a chuva — as leituras mudam depressa por aqui.',
+    'chat.seed.msg-2': 'O poço junto ao moinho antigo voltou a ter nitratos altos hoje.',
+    'chat.seed.msg-2b': 'Aqui foi igual depois da chuva — a nascente a montante parece bem.',
+    'chat.seed.msg-3': 'A nascente continua com o gosto normal. pH 7 esta manhã.',
+    'chat.seed.msg-4': 'Alguém mais viu pulverização junto ao furo costeiro?',
+    'chat.seedTitle.thread-1': 'Nitratos depois da chuva',
+    'chat.seedTitle.thread-2': 'Nascente ainda limpa',
+    'chat.seedTitle.thread-3': 'Amostra depois da chuva',
+    'chat.seedTitle.thread-4': 'Eucalipto perto da costa',
 
     'popup.linked': '{count} ligadas · {name}',
 
-    'public.nitrate': 'EPA — nitratos na água potável',
-    'public.nitrite': 'EPA — nitritos na água potável',
-    'public.ph': 'OMS — qualidade da água potável',
+    'public.ph': 'USGS — pH e água',
+    'public.nitrate': 'OMS — diretrizes para qualidade da água potável',
+    'public.ecoli': 'OMS — diretrizes para qualidade da água potável',
+    'public.coliforms': 'OMS — diretrizes para qualidade da água potável',
+    'public.conductivity': 'USGS — condutividade e água',
+    'public.tds': 'OMS — diretrizes para qualidade da água potável',
+    'public.arsenic': 'OMS — arsénio',
+    'public.no2n': 'UE 2020/2184 — água para consumo humano',
+    'public.no3n': 'OMS — diretrizes para qualidade da água potável',
+    'public.hardness': 'Águas do Alto Minho — qualidade da água',
+    'public.chlorineFree': 'OMS — diretrizes para qualidade da água potável',
+    'public.chlorineTotal': 'OMS — diretrizes para qualidade da água potável',
+    'public.copper': 'OMS — diretrizes para qualidade da água potável',
+    'public.iron': 'UE 2020/2184 — água para consumo humano',
+    'public.lead': 'OMS — intoxicação por chumbo e saúde',
+    'public.cyanuric': 'OMS — dicloroisocianurato de sódio',
   },
 }
 
@@ -698,6 +858,39 @@ export function translate(locale, key, vars) {
     )
   }
   return text
+}
+
+const MODERATOR_SUFFIX = ' (moderator)'
+
+/** Use a locale-specific string when it exists; otherwise keep stored copy (user posts). */
+export function localizedStoredText(locale, t, key, stored) {
+  if (stored == null || stored === '') return stored
+  const lang = normalizeLocale(locale)
+  if (!STRINGS[lang]?.[key]) return stored
+  return t(key)
+}
+
+export function localizedChatMessageText(message, locale, t) {
+  if (!message?.id) return message?.text ?? ''
+  return localizedStoredText(locale, t, `chat.seed.${message.id}`, message.text)
+}
+
+export function localizedChatThreadTitle(thread, locale, t) {
+  const stored = thread?.title?.trim() || ''
+  if (!thread?.id) return stored
+  return localizedStoredText(locale, t, `chat.seedTitle.${thread.id}`, stored)
+}
+
+export function localizedChatAuthor(author, locale, t) {
+  if (!author) return author
+  if (normalizeLocale(locale) !== 'pt' || !author.endsWith(MODERATOR_SUFFIX)) return author
+  return t('chat.moderatorName', { name: author.slice(0, -MODERATOR_SUFFIX.length) })
+}
+
+export function localizedChatPlaceLabel(label, locale) {
+  if (!label) return label
+  if (SOURCE_TYPE_LABELS[label]) return sourceTypeName(label, locale)
+  return label
 }
 
 export function sourceTypeName(type, locale) {

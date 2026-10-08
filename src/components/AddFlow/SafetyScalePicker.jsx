@@ -129,7 +129,11 @@ export default function SafetyScalePicker({ scale, value, onChange }) {
               onClick={() => selectIndex(index)}
               aria-pressed={isSelected}
             >
-              {band.value}
+              {band.labelKey
+                ? t(band.labelKey)
+                : band.orHigher && !String(band.value).endsWith('+')
+                  ? `${band.value}+`
+                  : band.value}
             </button>
           )
         })}

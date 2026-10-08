@@ -103,8 +103,9 @@
   line-height: 1.4;
 }
 .flow-hint--muted {
-  font-size: 0.78rem;
-  margin-top: 12px;
+  font-size: 0.75rem;
+  margin: -8px 0 16px;
+  line-height: 1.45;
 }
 
 .location-choice {
@@ -335,6 +336,24 @@
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--ws-accent) 25%, transparent);
 }
 
+.presence-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.presence-chip--present.chip--selected {
+  background: #c85032;
+  border-color: #c85032;
+  color: #fff;
+}
+
+.presence-chip--absent.chip--selected {
+  background: #448d49;
+  border-color: #448d49;
+  color: #fff;
+}
+
 .measure-row-unit {
   padding-top: 10px;
   font-size: 0.75rem;
@@ -529,6 +548,34 @@
   margin: 0;
   font-size: 0.78rem;
   color: var(--ws-ink-soft);
+}
+
+.measure-info-link,
+.source-detail-learn {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ws-accent);
+  text-decoration: none;
+}
+
+.measure-info-link:hover,
+.source-detail-learn:hover {
+  text-decoration: underline;
+}
+
+.category-chip--safe.chip--selected {
+  background: #448d49;
+  border-color: #448d49;
+  color: #fff;
+}
+
+.category-chip--concern.chip--selected {
+  background: #c85032;
+  border-color: #c85032;
+  color: #fff;
 }
 
 .new-measure-form {
@@ -916,6 +963,14 @@
   font-size: 0.76rem;
   font-weight: 600;
   color: var(--ws-accent);
+}
+
+.flow-save-error {
+  margin: 0;
+  padding: 8px 20px 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ws-coral);
 }
 
 .flow-sheet-footer {

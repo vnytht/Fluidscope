@@ -1,7 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useAppState } from '../../context/AppStateContext'
 import { useLanguage } from '../../context/LanguageContext'
-import { sourceTypeName } from '../../lib/i18n'
+import {
+  localizedChatAuthor,
+  localizedChatMessageText,
+  localizedChatPlaceLabel,
+  localizedChatThreadTitle,
+  sourceTypeName,
+} from '../../lib/i18n'
 import {
   CHAT_TOWNS,
   THREAD_SUBJECTS,
@@ -38,11 +44,11 @@ function townDisplayName(townId, t) {
   return getChatTown(townId)?.name ?? t('chat.unknownTown')
 }
 
-function threadTitle(thread, t) {
-  return thread.title?.trim() || subjectLabel(thread.subject, t)
+function threadTitle(thread, t, locale) {
+  return localizedChatThreadTitle(thread, locale, t) || subjectLabel(thread.subject, t)
 }
 
-function ChatMessages({ messages, user, emptyLabel, dateLocale, youLabel }) {
+function ChatMessages({ messages, user, emptyLabel, dateLocale, youLabel, locale, t }) {
   let lastDay = null
 
   if (messages.length === 0) {
@@ -60,9 +66,11 @@ function ChatMessages({ messages, user, emptyLabel, dateLocale, youLabel }) {
       <div key={m.id}>
         {showDay && <p className="chat-day">{day}</p>}
         <div className={`chat-message${isOwn ? ' chat-message--own' : ''}`}>
-          {!isOwn && <strong className="chat-message-author">{m.author}</strong>}
+          {!isOwn && (
+            <strong className="chat-message-author">{localizedChatAuthor(m.author, locale, t)}</strong>
+          )}
           <div className="chat-message-bubble">
-            <p>{m.text}</p>
+            <p>{localizedChatMessageText(m, locale, t)}</p>
           </div>
           <span className="chat-message-time">{formatTime(m.createdAt, dateLocale)}</span>
         </div>
@@ -145,7 +153,7 @@ export default function ChatPanel({
           : level === 'compose'
           ? t('chat.newThread')
           : thread
-            ? threadTitle(thread, t)
+            ? threadTitle(thread, t, locale)
             : t('chat.title')
 
   const subtitle =
@@ -156,7 +164,7 @@ export default function ChatPanel({
         : level === 'threads'
           ? t('chat.threadsForTown')
           : level === 'thread' && thread
-          ? [subjectLabel(thread.subject, t), thread.placeLabel, townDisplayName(thread.townId, t)]
+          ? [subjectLabel(thread.subject, t), localizedChatPlaceLabel(thread.placeLabel, locale), townDisplayName(thread.townId, t)]
               .filter(Boolean)
               .join(' · ')
           : level === 'compose'
@@ -289,6 +297,8 @@ export default function ChatPanel({
               emptyLabel={t('chat.emptyCommunity')}
               dateLocale={dateLocale}
               youLabel={t('chat.you')}
+              locale={locale}
+              t={t}
             />
           </div>
           <div className="chat-list-footer chat-list-footer--community">
@@ -347,10 +357,10 @@ export default function ChatPanel({
                       <em className={`chat-subject chat-subject--${item.subject}`}>
                         {subjectLabel(item.subject, t)}
                       </em>
-                      <strong>{threadTitle(item, t)}</strong>
+                      <strong>{threadTitle(item, t, locale)}</strong>
                       <span>
-                        {item.placeLabel ? `${item.placeLabel} · ` : ''}
-                        {last ? last.text : t('chat.empty')}
+                        {item.placeLabel ? `${localizedChatPlaceLabel(item.placeLabel, locale)} · ` : ''}
+                        {last ? localizedChatMessageText(last, locale, t) : t('chat.empty')}
                       </span>
                     </span>
                     <span className="chat-row-meta">
@@ -458,6 +468,8 @@ export default function ChatPanel({
               emptyLabel={t('chat.empty')}
               dateLocale={dateLocale}
               youLabel={t('chat.you')}
+              locale={locale}
+              t={t}
             />
           </div>
           <form className="chat-input-row" onSubmit={handleReply}>

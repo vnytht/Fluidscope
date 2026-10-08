@@ -1,4 +1,4 @@
-import { evaluateReading, getMeasureScale } from './qualityBands'
+import { evaluateReading, formatBandValue, getMeasureScale, normalizePresence } from './qualityBands'
 import { formatLisbonDate, formatLisbonDateTime } from './lisbonTime'
 
 /** Hypothetical past tests for prototype demos — keyed by sample id. */
@@ -9,7 +9,7 @@ const MOCK_HISTORY_BY_SAMPLE = {
       testedAt: '2026-07-12T10:15:00Z',
       sessionId: 'session-seed-1',
       readings: [
-        { measureId: 'nitrate', value: '25' },
+        { measureId: 'nitrate', value: '100+' },
         { measureId: 'ph', value: '5.5' },
       ],
       hazards: ['septic', 'agriculture'],
@@ -112,20 +112,22 @@ export function buildSourceTimeline(sample, dateLocale = 'en-GB') {
   ]
 }
 
-export function formatReadingRows(readings, qualityMeasures) {
+export function formatReadingRows(readings, qualityMeasures, t) {
   return readings.map((reading) => {
     const measure = qualityMeasures.find((m) => m.id === reading.measureId)
     const name = measure?.name ?? reading.measureId
-    const { safe } = evaluateReading(reading.measureId, reading.value)
+    const { safe } = evaluateReading(reading.measureId, reading.value, measure)
     const scale = measure?.id
-    const unit =
-      getMeasureScale(reading.measureId)?.unit ?? ''
+    const unit = getMeasureScale(reading.measureId)?.unit ?? measure?.unit ?? ''
+    const presence = normalizePresence(reading.value)
+    const shown = presence && t ? t(`quality.${presence}`) : formatBandValue(reading.measureId, reading.value, t)
     return {
       id: reading.measureId,
       name,
-      value: `${reading.value}${unit ? ` ${unit}` : ''}`,
+      value: `${shown}${unit ? ` ${unit}` : ''}`,
       safe,
       scale,
+      presence,
     }
   })
 }

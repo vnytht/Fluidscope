@@ -11,7 +11,7 @@ export default function SamplePopup({ sample, qualityMeasures, relatedCount }) {
 
   const readingsLine = sample.readings
     .map((reading) => {
-      const { name, value, unit } = formatReadingDisplay(reading, qualityMeasures)
+      const { name, value, unit } = formatReadingDisplay(reading, qualityMeasures, t)
       return `${measureName(reading.measureId, name, t)} ${value}${unit ? ` ${unit}` : ''}`
     })
     .join(' · ')

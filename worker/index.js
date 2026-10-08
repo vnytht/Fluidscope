@@ -183,12 +183,12 @@ function staffEmails(env) {
 }
 
 function publicUser(row, env) {
-  const staff = staffEmails(env).includes(row.email)
+  const staff = staffEmails(env).includes(String(row.email || '').toLowerCase())
   return {
     id: row.id,
     username: row.username,
     email: row.email,
-    role: staff || row.role === 'staff' ? 'staff' : 'resident',
+    role: staff ? 'staff' : 'resident',
   }
 }
 
@@ -329,7 +329,7 @@ async function patchSource(request, env, user, id) {
 async function deleteSource(env, user, id) {
   const row = await env.DB.prepare('SELECT * FROM sources WHERE id = ?').bind(id).first()
   if (!row) return json({ error: 'not_found' }, 404)
-  if (!canEdit(user, row.created_by)) return json({ error: 'forbidden' }, 403)
+  if (!isStaff(user)) return json({ error: 'forbidden' }, 403)
   await env.DB.prepare('DELETE FROM sources WHERE id = ?').bind(id).run()
   await writeEvent(env.DB, user, 'sample_delete', { id })
   return json({ ok: true, id })
@@ -367,7 +367,7 @@ async function createHazards(request, env, user) {
 async function deleteHazard(env, user, id) {
   const row = await env.DB.prepare('SELECT * FROM hazards WHERE id = ?').bind(id).first()
   if (!row) return json({ error: 'not_found' }, 404)
-  if (!canEdit(user, row.created_by)) return json({ error: 'forbidden' }, 403)
+  if (!isStaff(user)) return json({ error: 'forbidden' }, 403)
   await env.DB.prepare('DELETE FROM hazards WHERE id = ?').bind(id).run()
   await writeEvent(env.DB, user, 'hazard_delete', { id })
   return json({ ok: true, id })
@@ -451,8 +451,12 @@ async function replyThread(request, env, user, threadId) {
   return json(message, 201)
 }
 
+function isStaff(user) {
+  return user?.role === 'staff'
+}
+
 function canEdit(user, createdBy) {
-  if (user.role === 'staff') return true
+  if (isStaff(user)) return true
   return Boolean(createdBy) && createdBy === user.id
 }
 

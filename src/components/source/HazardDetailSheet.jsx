@@ -4,6 +4,7 @@ import { hazardName, sourceTypeName } from '../../lib/i18n'
 import { formatLisbonDateTime } from '../../lib/lisbonTime'
 import { useLanguage } from '../../context/LanguageContext'
 import { IconClose } from '../ui/Icons'
+import ElevationRow from './ElevationRow'
 import './SourceDetailSheet.css'
 import './HazardDetailSheet.css'
 
@@ -20,7 +21,13 @@ function metersBetween(a, b) {
   return 2 * 6371000 * Math.asin(Math.min(1, Math.sqrt(h)))
 }
 
-export default function HazardDetailSheet({ hazard, samples = [], canEdit = false, onClose, onDelete }) {
+export default function HazardDetailSheet({
+  hazard,
+  samples = [],
+  canDelete = false,
+  onClose,
+  onDelete,
+}) {
   const { locale, dateLocale, t } = useLanguage()
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -91,6 +98,7 @@ export default function HazardDetailSheet({ hazard, samples = [], canEdit = fals
               </div>
             </div>
           )}
+          <ElevationRow position={hazard.position} />
           <div className="source-detail-row">
             <div className="source-detail-row-text">
               <span className="source-detail-row-label">{t('hazard.detailNearby')}</span>
@@ -111,7 +119,7 @@ export default function HazardDetailSheet({ hazard, samples = [], canEdit = fals
         </div>
         <p className="hazard-detail-note">{t('hazard.detailNote')}</p>
       </div>
-      {canEdit && (
+      {canDelete && (
         <div className="flow-sheet-footer source-detail-footer">
           {!confirmDelete ? (
             <button

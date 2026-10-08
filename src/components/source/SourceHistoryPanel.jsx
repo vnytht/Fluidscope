@@ -15,7 +15,7 @@ function hazardSummary(hazardIds, locale) {
 }
 
 function ReadingList({ readings, qualityMeasures, compact = false, t }) {
-  const rows = formatReadingRows(readings, qualityMeasures).map((row) => ({
+  const rows = formatReadingRows(readings, qualityMeasures, t).map((row) => ({
     ...row,
     name: measureName(row.id, row.name, t),
   }))
@@ -199,7 +199,7 @@ export default function SourceHistoryPanel({ sample, qualityMeasures }) {
                     </>
                   ) : (
                     <p className="source-history-event-preview">
-                      {formatReadingRows(entry.readings, qualityMeasures)
+                      {formatReadingRows(entry.readings, qualityMeasures, t)
                         .map((r) => `${measureName(r.id, r.name, t)} ${r.value}`)
                         .join(' · ') || t('history.noReadings')}
                     </p>

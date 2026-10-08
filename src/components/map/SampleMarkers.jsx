@@ -1,9 +1,8 @@
 import { useMemo } from 'react'
 import { Marker } from 'react-leaflet'
-import { getCatchment } from '../../lib/catchments'
 import { downstreamIcon, iconForSample, relatedIcon, selectedIcon, upstreamIcon } from './markerIcons'
 
-export default function SampleMarkers({ samples, selectedId, onSelect, impactAnalysis }) {
+export default function SampleMarkers({ samples, selectedId, onSelect, impactAnalysis, qualityMeasures }) {
   const relations = useMemo(() => impactAnalysis?.relationBySampleId ?? {}, [impactAnalysis])
   const hasSelection = Boolean(selectedId)
 
@@ -11,14 +10,14 @@ export default function SampleMarkers({ samples, selectedId, onSelect, impactAna
     const isSelected = sample.id === selectedId
     const relation = relations[sample.id]
     const icon = isSelected
-      ? selectedIcon(sample)
+      ? selectedIcon(sample, qualityMeasures)
       : relation === 'upstream'
-        ? upstreamIcon(sample)
+        ? upstreamIcon(sample, qualityMeasures)
         : relation === 'downstream'
-        ? downstreamIcon(sample)
+          ? downstreamIcon(sample, qualityMeasures)
         : relation === 'same-apa' || relation === 'same-basin'
-        ? relatedIcon(sample, getCatchment(sample.catchmentId).color)
-        : iconForSample(sample)
+        ? relatedIcon(sample, qualityMeasures)
+        : iconForSample(sample, qualityMeasures)
 
     return (
       <Marker

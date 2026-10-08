@@ -73,7 +73,7 @@ export function buildArrowCollection(streams, zoom, options = {}) {
     const coords = feature.geometry?.coordinates
     if (!coords || coords.length < 2 || typeof coords[0][0] !== 'number') return
     const length = lineLength(coords)
-    if (length < spacing * 0.35) return
+    if (!options.keepShort && length < spacing * 0.35) return
 
     const count = Math.max(1, Math.min(maxPerLine, Math.floor(length / spacing)))
     for (let i = 1; i <= count; i += 1) {

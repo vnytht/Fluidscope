@@ -5,6 +5,7 @@ import { hazardName, measureName, sourceTypeName, usageName } from '../../../lib
 import { asUsageList } from '../../../lib/sourceUsage'
 import { useLanguage } from '../../../context/LanguageContext'
 import { IconAlert, IconBeaker, IconMapPin } from '../../ui/Icons'
+import ElevationRow from '../../source/ElevationRow'
 
 export default function ReviewStep({
   location,
@@ -24,8 +25,9 @@ export default function ReviewStep({
     : null
 
   const rows = readings.map((reading) => {
-    const display = formatReadingDisplay(reading, qualityMeasures)
-    const { safe, band } = evaluateReading(reading.measureId, reading.value)
+    const display = formatReadingDisplay(reading, qualityMeasures, t)
+    const measure = qualityMeasures.find((item) => item.id === reading.measureId)
+    const { safe, band } = evaluateReading(reading.measureId, reading.value, measure)
     const publicLink = PUBLIC_INFO_LINKS[reading.measureId]
     return {
       id: reading.measureId,
@@ -83,7 +85,7 @@ export default function ReviewStep({
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    {t(`public.${reading.id}`)}
+                    {t('quality.furtherInfo')}
                     <span aria-hidden="true"> ↗</span>
                   </a>
                 )}
@@ -106,6 +108,8 @@ export default function ReviewStep({
             {t('review.edit')}
           </button>
         </div>
+
+        <ElevationRow position={location} variant="review" />
 
         <div className="review-row">
           <div className="review-row-copy">
@@ -169,6 +173,17 @@ export default function ReviewStep({
                     <span className="review-reading-badge review-reading-badge--unsafe">
                       {t('review.outside')}
                     </span>
+                  )}
+                  {reading.publicLink && (
+                    <a
+                      className="review-learn-more"
+                      href={reading.publicLink.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {t('quality.furtherInfo')}
+                      <span aria-hidden="true"> ↗</span>
+                    </a>
                   )}
                 </li>
               ))}

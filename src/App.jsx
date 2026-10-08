@@ -17,6 +17,7 @@ import HydrologyLayer from './components/map/HydrologyLayer'
 import ElevationLayer from './components/map/ElevationLayer'
 import DetailedWaterLayer from './components/map/DetailedWaterLayer'
 import BasinLayers from './components/map/BasinLayers'
+import BasinFlowOrderLayer from './components/map/BasinFlowOrderLayer'
 import MapLayersControl from './components/map/MapLayersControl'
 import SourceHistoryUxOptions from './pages/SourceHistoryUxOptions'
 import FlowVizOptions from './pages/FlowVizOptions'
@@ -51,7 +52,7 @@ function AppGate() {
     mapHazards,
     qualityMeasures,
     canEditSample,
-    canEditHazard,
+    canDeletePins,
     deleteSample,
     deleteMapHazard,
   } = useAppState()
@@ -172,6 +173,7 @@ function AppGate() {
           showBasins={mapLayers.basins}
           showSubBasins={mapLayers.subBasins}
         />
+        <BasinFlowOrderLayer active={mapLayers.flowOrder} />
         <DetailedWaterLayer
           active={mapLayers.streams}
           emphasized={!isDefaultFilters(filters)}
@@ -182,6 +184,7 @@ function AppGate() {
           selectedId={selectedSampleId}
           onSelect={selectSample}
           impactAnalysis={impactAnalysis}
+          qualityMeasures={qualityMeasures}
         />
         <HazardMarkers
           hazards={[...filteredHazards, ...draftHazards]}
@@ -231,6 +234,7 @@ function AppGate() {
           impactAnalysis={impactAnalysis}
           qualityMeasures={qualityMeasures}
           canEdit={canEditSample(selectedSample)}
+          canDelete={canDeletePins}
           onClose={() => setSelectedSampleId(null)}
           onEdit={() => startEdit(selectedSample)}
           onDelete={async () => {
@@ -244,7 +248,7 @@ function AppGate() {
         <HazardDetailSheet
           hazard={selectedHazard}
           samples={samples}
-          canEdit={canEditHazard(selectedHazard)}
+          canDelete={canDeletePins}
           onClose={() => setSelectedHazardId(null)}
           onDelete={async () => {
             await deleteMapHazard(selectedHazard.id)

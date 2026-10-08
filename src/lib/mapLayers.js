@@ -3,6 +3,7 @@ export const DEFAULT_MAP_LAYERS = {
   elevation: false,
   basins: false,
   subBasins: false,
+  flowOrder: false,
 }
 
-export const MAP_LAYER_KEYS = ['streams', 'elevation', 'basins', 'subBasins']
+export const MAP_LAYER_KEYS = ['streams', 'elevation', 'basins', 'subBasins', 'flowOrder']
