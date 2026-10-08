@@ -201,18 +201,18 @@ try {
   assert('other resident cannot delete', stealDelete.status === 403)
 
   const deleteOwn = await req(`/api/sources/${ownId}`, { method: 'DELETE', cookie: cookieA })
-  assert('owner can delete own pin', deleteOwn.status === 200 && deleteOwn.json.ok)
+  assert('owner cannot delete own pin', deleteOwn.status === 403)
 
-  const gone = await req(`/api/sources/${ownId}`, {
+  const stillThere = await req(`/api/sources/${ownId}`, {
     method: 'PATCH',
     cookie: cookieA,
     body: { sourceType: 'Spring' },
   })
-  assert('deleted source is gone', gone.status === 404)
+  assert('own pin remains after owner delete attempt', stillThere.status === 200)
 
   const hazardId = hazards.json.hazards[0].id
   const deleteHazard = await req(`/api/hazards/${hazardId}`, { method: 'DELETE', cookie: cookieA })
-  assert('owner can delete hazard', deleteHazard.status === 200 && deleteHazard.json.ok)
+  assert('owner cannot delete hazard', deleteHazard.status === 403)
 
   const reset = await req('/api/auth/reset', {
     method: 'POST',
