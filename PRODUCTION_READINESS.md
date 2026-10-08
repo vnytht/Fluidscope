@@ -32,7 +32,7 @@ For 10–20 concurrent users the load is small. The work is **correctness, persi
 
 **What the brief said vs what the repo has**
 
-`CLAUDE.md` still lists Supabase, Gemini (server-side key), and Vercel/Netlify. **None of those are implemented.** There is no `.env`, no `wrangler.toml`, no `.github/workflows`.
+`docs/PRODUCT_BRIEF.md` still lists Supabase, Gemini (server-side key), and Vercel/Netlify. **None of those are implemented.** There is no `.env`, no `wrangler.toml`, no `.github/workflows`.
 
 ---
 
@@ -74,10 +74,10 @@ For 10–20 concurrent users the load is small. The work is **correctness, persi
 | **Medium** | No error boundary / offline / failed-save UX. | One Leaflet/React throw blanks the app. | `main.jsx` |
 | **Medium** | No TypeScript; oxlint only. | Easy regressions in filters/chat payloads. | `package.json`; `.oxlintrc.json` |
 | **Medium** | HTML `lang` not tied to locale; pinch-zoom disabled. | PT users + accessibility. | `index.html` |
-| **Medium** | Chat “moderated by a person” is copy only — no report/moderation queue. | Brief: do not build automated moderation; still need a human path. | `CLAUDE.md`; `ChatPanel` |
-| **Medium** | Photos in the FTU brief are not a storage pipeline. | Will need R2 + size limits if you add photos. | `CLAUDE.md` step 5 vs no upload API |
+| **Medium** | Chat “moderated by a person” is copy only — no report/moderation queue. | Brief: do not build automated moderation; still need a human path. | `docs/PRODUCT_BRIEF.md`; `ChatPanel` |
+| **Medium** | Photos in the FTU brief are not a storage pipeline. | Will need R2 + size limits if you add photos. | `docs/PRODUCT_BRIEF.md` step 5 vs no upload API |
 | **Low** | README is still the Vite template. | New contributors cannot deploy. | `README.md` |
-| **Low** | Gemini Q&A not built (good — no leaked key). | Product later; keep keys on a Worker. | `CLAUDE.md` vs no Gemini code |
+| **Low** | Gemini Q&A not built (good — no leaked key). | Product later; keep keys on a Worker. | `docs/PRODUCT_BRIEF.md` vs no Gemini code |
 | **Low** | `viewport` + large GeoJSON on Streams. | Performance, not correctness, at this N. | `DetailedWaterLayer.jsx` fetch |
 
 ---
@@ -171,8 +171,8 @@ These need an explicit yes from product, legal, or infra. Do not implement until
 
 | Decision | Why a human must choose |
 |---|---|
-| **Cloudflare D1 vs Supabase** | `CLAUDE.md` said Supabase; you said Cloudflare. Pick one source of truth. |
-| **Must residents have accounts?** | Brief still has an open “no login vs login” conflict (`CLAUDE.md`). |
+| **Cloudflare D1 vs Supabase** | `docs/PRODUCT_BRIEF.md` said Supabase; you said Cloudflare. Pick one source of truth. |
+| **Must residents have accounts?** | Brief still has an open “no login vs login” conflict (`docs/PRODUCT_BRIEF.md`). |
 | **Who may edit/delete a pin?** | Owner only vs workshop facilitator vs anyone. |
 | **What is stored and for how long?** | GPS + nitrate/pH can be sensitive. Retention and who sees the admin export. |
 | **Email provider for password reset** | Required for real “forgot password”. |

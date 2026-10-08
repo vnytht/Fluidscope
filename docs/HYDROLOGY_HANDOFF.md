@@ -1,8 +1,8 @@
-# WaterScope hydrology — Cursor chat handoff
+# WaterScope hydrology notes
 
-Use this file to continue work in Codex (or any other agent). It captures **what we decided**, **what the data can and cannot do**, **what is in the app now**, and **what not to rebuild**.
+Decisions, what the data can and cannot do, what is in the app now, and what not to rebuild.
 
-Related product context: [`CLAUDE.md`](../CLAUDE.md) (WaterScope / Viana do Castelo community water map).
+Related product context: [`PRODUCT_BRIEF.md`](PRODUCT_BRIEF.md).
 
 ---
 
@@ -155,26 +155,6 @@ Possible later upgrades (not MVP):
 - [`src/lib/mockData.js`](../src/lib/mockData.js) — seeds including inland `seed-5`–`seed-7`
 - [`GeoJSON/scripts/get_apa_rivers.py`](../GeoJSON/scripts/get_apa_rivers.py) — APA clip pipeline
 - [`GeoJSON/README.md`](../GeoJSON/README.md) — GIS notes and attribution
-
-Prototype login: any email + password ([`LoginScreen.jsx`](../src/components/auth/LoginScreen.jsx)). Add-flow often opens first (`flowActive: true`); close it to tap pins. Dev: `npm run dev`.
-
----
-
-## Prompt starter for Codex
-
-```
-Read docs/HYDROLOGY_HANDOFF.md and CLAUDE.md.
-
-Do not re-litigate MERIT, Gaia, or HydroRIVERS-as-the-source-river.
-Do not draw pin-to-pin flow lines or snap wells to APA/OSM as proof of connection.
-Keep idle map clean; hydrology only on selected source.
-
-Current MVP: HydroBASINS 3-zone overlay + NEXT_DOWN land arrows.
-Same-basin pins are neighbours.
-
-If changing viz, preserve the user takeaway: what AREA might / might not
-affect this source at surface-catchment scale.
-```
 
 ---
 
